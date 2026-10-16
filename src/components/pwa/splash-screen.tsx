@@ -1,39 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { FullLogo } from "@/components/brand/logo";
+import { useEffect } from "react";
+import { AnimatedMark } from "@/components/brand/animated-mark";
 
-/** Branded splash shown once per session when the app is launched from the Home Screen. */
+const SHOW_MS = 2300;
+
+/**
+ * Opening animation: the logo's two figures shake hands, then the name appears and the screen fades.
+ * Shown once per browser session. A tiny inline script in the layout decides (before first paint)
+ * whether to show it, so there is no flash.
+ */
 export function SplashScreen() {
-  const [visible, setVisible] = useState(false);
-  const [fading, setFading] = useState(false);
-
   useEffect(() => {
+    const root = document.documentElement;
+    if (root.getAttribute("data-splash") !== "on") return;
     try {
-      const standalone =
-        window.matchMedia("(display-mode: standalone)").matches ||
-        (navigator as Navigator & { standalone?: boolean }).standalone === true;
-      if (!standalone || sessionStorage.getItem("mukana:splash")) return;
       sessionStorage.setItem("mukana:splash", "1");
     } catch {
-      return;
+      /* optional */
     }
-    setVisible(true);
-    const t1 = setTimeout(() => setFading(true), 1100);
-    const t2 = setTimeout(() => setVisible(false), 1500);
+    const fade = setTimeout(() => root.setAttribute("data-splash", "fading"), SHOW_MS);
+    const done = setTimeout(() => root.removeAttribute("data-splash"), SHOW_MS + 450);
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
+      clearTimeout(fade);
+      clearTimeout(done);
     };
   }, []);
 
-  if (!visible) return null;
   return (
-    <div
-      aria-hidden
-      className={`fixed inset-0 z-[100] grid place-items-center bg-white transition-opacity duration-400 ${fading ? "opacity-0" : "opacity-100"}`}
-    >
-      <FullLogo size={260} priority />
+    <div className="mukana-splash" aria-hidden>
+      <div className="flex flex-col items-center">
+        <AnimatedMark size={150} />
+        <p className="mukana-splash-name mt-4 font-heading text-4xl font-bold tracking-tight text-navy">Mukana</p>
+        <p className="mukana-splash-tag mt-1 text-sm text-[#4a5a73]">Your Opportunity Starts Here.</p>
+      </div>
     </div>
   );
 }
