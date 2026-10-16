@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { AnimatedMark } from "@/components/brand/animated-mark";
 
-const SHOW_MS = 2300;
+const SHOW_MS = 5200;
 
 /**
  * Opening animation: the logo's two figures shake hands, then the name appears and the screen fades.

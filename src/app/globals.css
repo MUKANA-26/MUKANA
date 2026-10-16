@@ -204,21 +204,21 @@ html[data-splash="fading"] .mukana-splash {
 }
 
 .mukana-left {
-  animation: mukana-meet-left 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: mukana-meet-left 1.3s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
 }
 .mukana-right {
-  animation: mukana-meet-right 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: mukana-meet-right 1.3s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
 }
 /* After they meet, the pair shakes up and down like a handshake. */
 .mukana-shake {
   transform-origin: 50% 70%;
-  animation: mukana-handshake 0.75s ease-in-out 0.85s both;
+  animation: mukana-handshake 1.6s ease-in-out 1.7s both;
 }
 .mukana-splash-name {
-  animation: mukana-rise 0.6s ease-out 1.5s both;
+  animation: mukana-rise 0.9s ease-out 3.2s both;
 }
 .mukana-splash-tag {
-  animation: mukana-rise 0.6s ease-out 1.75s both;
+  animation: mukana-rise 0.9s ease-out 3.7s both;
 }
 
 @keyframes mukana-meet-left {
@@ -252,17 +252,23 @@ html[data-splash="fading"] .mukana-splash {
   100% {
     transform: translateY(0) rotate(0);
   }
-  15% {
-    transform: translateY(-7px) rotate(-3deg);
+  12% {
+    transform: translateY(-9px) rotate(-3deg);
   }
-  35% {
-    transform: translateY(6px) rotate(3deg);
+  28% {
+    transform: translateY(8px) rotate(3deg);
   }
-  55% {
-    transform: translateY(-5px) rotate(-2deg);
+  44% {
+    transform: translateY(-8px) rotate(-3deg);
   }
-  75% {
-    transform: translateY(3px) rotate(1.5deg);
+  60% {
+    transform: translateY(6px) rotate(2deg);
+  }
+  76% {
+    transform: translateY(-4px) rotate(-1.5deg);
+  }
+  90% {
+    transform: translateY(2px) rotate(1deg);
   }
 }
 
