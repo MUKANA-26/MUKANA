@@ -55,11 +55,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${poppins.variable}`}>
       <head>
-        {/* Decide before first paint whether to show the opening animation (once per session). */}
+        {/* Decide before first paint whether to show the opening animation (home page only, once per session, so it never blocks sign-in). */}
         <script
           nonce={nonce}
           dangerouslySetInnerHTML={{
-            __html: "try{if(!sessionStorage.getItem('mukana:splash')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.setAttribute('data-splash','on')}}catch(e){}",
+            __html: "try{if(location.pathname==='/'&&!sessionStorage.getItem('mukana:splash')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.setAttribute('data-splash','on')}}catch(e){}",
           }}
         />
       </head>

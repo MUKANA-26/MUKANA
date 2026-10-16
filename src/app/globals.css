@@ -204,21 +204,21 @@ html[data-splash="fading"] .mukana-splash {
 }
 
 .mukana-left {
-  animation: mukana-meet-left 1.3s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+  animation: mukana-meet-left 2s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
 }
 .mukana-right {
-  animation: mukana-meet-right 1.3s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+  animation: mukana-meet-right 2s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
 }
 /* After they meet, the pair shakes up and down like a handshake. */
 .mukana-shake {
   transform-origin: 50% 70%;
-  animation: mukana-handshake 1.6s ease-in-out 1.7s both;
+  animation: mukana-handshake 2.6s ease-in-out 2.6s both;
 }
 .mukana-splash-name {
-  animation: mukana-rise 0.9s ease-out 3.2s both;
+  animation: mukana-rise 1.2s ease-out 5.2s both;
 }
 .mukana-splash-tag {
-  animation: mukana-rise 0.9s ease-out 3.7s both;
+  animation: mukana-rise 1.2s ease-out 6s both;
 }
 
 @keyframes mukana-meet-left {
