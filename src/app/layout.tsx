@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Poppins } from "next/font/google";
 import { headers } from "next/headers";
+import Script from "next/script";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
@@ -54,15 +55,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${poppins.variable}`}>
-      <head>
-        {/* Decide before first paint whether to show the opening animation (home page only, once per session, so it never blocks sign-in). */}
-        <script
-          nonce={nonce}
-          dangerouslySetInnerHTML={{
-            __html: "try{if(location.pathname==='/'&&!sessionStorage.getItem('mukana:splash')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.setAttribute('data-splash','on')}}catch(e){}",
-          }}
-        />
-      </head>
       <body>
         <a
           href="#main"
@@ -70,6 +62,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           Skip to content
         </a>
+        {/* Decides before first paint whether to show the opening animation (home page only, once per session). */}
+        <Script
+          id="splash-init"
+          strategy="beforeInteractive"
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: "try{if(location.pathname==='/'&&!sessionStorage.getItem('mukana:splash')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.setAttribute('data-splash','on')}}catch(e){}",
+          }}
+        />
         <Providers nonce={nonce}>{children}</Providers>
       </body>
     </html>
