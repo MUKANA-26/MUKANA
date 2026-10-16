@@ -35,10 +35,17 @@ export async function finalizeUploadAction(kind: FileKind, path: string): Promis
     return { ok: false, error };
   };
 
-  const { data: signed, error: signError } = await supabase.storage.from(rule.bucket).createSignedUrl(path, 30);
-  if (signError || !signed) return { ok: false, error: "Upload could not be found" };
+  // Public buckets are read through their public address; private ones through a short-lived signed URL.
+  let readUrl: string;
+  if (rule.bucket === "post-media" || rule.bucket === "company-logos") {
+    readUrl = supabase.storage.from(rule.bucket).getPublicUrl(path).data.publicUrl;
+  } else {
+    const { data: signed, error: signError } = await supabase.storage.from(rule.bucket).createSignedUrl(path, 30);
+    if (signError || !signed) return { ok: false, error: "Upload could not be found" };
+    readUrl = signed.signedUrl;
+  }
 
-  const res = await fetch(signed.signedUrl, { headers: { Range: "bytes=0-31" }, cache: "no-store" });
+  const res = await fetch(readUrl, { headers: { Range: "bytes=0-31" }, cache: "no-store" });
   if (!res.ok && res.status !== 206) return reject("Upload could not be verified");
   const range = res.headers.get("content-range");
   const total = range ? Number(range.split("/")[1]) : Number(res.headers.get("content-length") ?? 0);

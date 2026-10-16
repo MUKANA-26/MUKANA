@@ -16,9 +16,9 @@ const mediaSchema = z.array(z.object({ kind: z.enum(["image", "video"]), path: z
 async function verifyMedia(userId: string, item: { kind: "image" | "video"; path: string }): Promise<string | null> {
   if (!item.path.startsWith(`${userId}/`) || item.path.includes("..")) return "Invalid file";
   const supabase = await createClient();
-  const { data: signed } = await supabase.storage.from("post-media").createSignedUrl(item.path, 30);
-  if (!signed) return "An uploaded file could not be found";
-  const res = await fetch(signed.signedUrl, { headers: { Range: "bytes=0-31" }, cache: "no-store" });
+  // post-media is a public bucket (unguessable file names), so verify through its public address.
+  const publicUrl = supabase.storage.from("post-media").getPublicUrl(item.path).data.publicUrl;
+  const res = await fetch(publicUrl, { headers: { Range: "bytes=0-31" }, cache: "no-store" });
   if (!res.ok && res.status !== 206) return "An uploaded file could not be verified";
   const range = res.headers.get("content-range");
   const total = range ? Number(range.split("/")[1]) : Number(res.headers.get("content-length") ?? 0);
