@@ -13,3 +13,4 @@ public/workbox-*.js
 .vercel
 _src
 .claude
+.next-*

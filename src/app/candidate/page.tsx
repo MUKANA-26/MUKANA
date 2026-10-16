@@ -149,7 +149,7 @@ export default async function CandidateDashboard() {
             Complete your profile to get ranked recommendations.
           </p>
         ) : (
-          <ul className="grid gap-3 md:grid-cols-3">
+          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {recs.map((r) => (
               <li key={r.opportunity.id} className="relative">
                 <OpportunityCard opportunity={r.opportunity} href={`/candidate/opportunities/${r.opportunity.id}`} matchScore={r.score} as="h3" />

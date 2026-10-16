@@ -33,6 +33,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Lets a production build run side by side with `next dev` (e.g. MUKANA_DIST_DIR=.next-prod).
+  distDir: process.env.MUKANA_DIST_DIR ?? ".next",
+  // Dev can use Turbopack (the service worker is disabled in dev); builds use webpack because Serwist needs it.
+  turbopack: {},
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
