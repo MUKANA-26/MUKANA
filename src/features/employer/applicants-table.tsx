@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/form";
 import { EmptyState } from "@/components/ui/misc";
 import { formatDate } from "@/lib/utils";
@@ -16,7 +17,15 @@ import { StatusChangeDialog, type ChangeableStatus } from "./status-dialog";
 
 const BULK: ChangeableStatus[] = ["under_review", "shortlisted", "offer_made", "unsuccessful"];
 
-export function ApplicantsTable({ items, templates }: { items: ApplicantRecord[]; templates: Record<TemplateKind, MessageTemplate> }) {
+export function ApplicantsTable({
+  items,
+  templates,
+  avatars = {},
+}: {
+  items: ApplicantRecord[];
+  templates: Record<TemplateKind, MessageTemplate>;
+  avatars?: Record<string, string>;
+}) {
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [target, setTarget] = React.useState<ChangeableStatus | null>(null);
 
@@ -71,6 +80,7 @@ export function ApplicantsTable({ items, templates }: { items: ApplicantRecord[]
                 onChange={() => toggle(a.id)}
                 aria-label={`Select ${a.candidate.full_name}`}
               />
+              <Avatar url={a.candidate.avatar_path ? avatars[a.candidate.avatar_path] : null} name={a.candidate.full_name} size="md" />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">

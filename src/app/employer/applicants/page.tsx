@@ -5,6 +5,7 @@ import { Input, Select } from "@/components/ui/form";
 import { PageHeader } from "@/components/ui/misc";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { signAvatarUrls } from "@/lib/avatars";
 import { STATUS_LABEL } from "@/features/applications/status";
 import { ApplicantsTable } from "@/features/employer/applicants-table";
 import { getApplicants, getTemplates, type ApplicantRecord } from "@/features/employer/queries";
@@ -79,6 +80,7 @@ export default async function ApplicantsPage({ searchParams }: { searchParams: P
   const page = Math.max(1, Number(one(params.page)) || 1);
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
   const visible = filtered.slice((page - 1) * PAGE, page * PAGE);
+  const avatars = await signAvatarUrls(visible.map((a) => a.candidate.avatar_path));
   const hasFilters = Object.entries(params).some(([k, v]) => k !== "page" && k !== "sort" && one(v));
 
   return (
@@ -176,7 +178,7 @@ export default async function ApplicantsPage({ searchParams }: { searchParams: P
       <p className="mb-3 text-sm text-muted-foreground" aria-live="polite">
         {filtered.length} applicant{filtered.length === 1 ? "" : "s"}
       </p>
-      {templates ? <ApplicantsTable key={`${page}-${filtered.length}`} items={visible} templates={templates} /> : null}
+      {templates ? <ApplicantsTable key={`${page}-${filtered.length}`} items={visible} templates={templates} avatars={avatars} /> : null}
 
       {pages > 1 ? (
         <nav aria-label="Pagination" className="mt-5 flex items-center justify-between gap-3">

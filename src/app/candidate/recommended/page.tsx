@@ -29,7 +29,7 @@ export default async function RecommendedPage() {
           description="Add your skills, programme and availability to your profile, and we'll rank open opportunities for you."
           action={
             <Button asChild variant="cta">
-              <Link href="/candidate/profile">Update profile</Link>
+              <Link href="/candidate/profile/edit">Update profile</Link>
             </Button>
           }
         />

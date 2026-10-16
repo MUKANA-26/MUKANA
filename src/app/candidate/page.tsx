@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/misc";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { signAvatarUrl } from "@/lib/avatars";
+import { Avatar } from "@/components/ui/avatar";
 import { formatDateTime } from "@/lib/utils";
 import { OpportunityCard } from "@/features/opportunities/opportunity-card";
 import { getRecommendations } from "@/features/matching/queries";
@@ -50,6 +52,7 @@ export default async function CandidateDashboard() {
       .order("scheduled_at")
       .limit(3),
   ]);
+  const avatarUrl = await signAvatarUrl(session.avatar_path);
   const apps = (appsRes.data ?? []) as unknown as AppRow[];
   const interviews = (interviewsRes.data ?? []) as unknown as InterviewRowJoined[];
   const count = (s: ApplicationStatus) => apps.filter((a) => a.status === s).length;
@@ -66,7 +69,22 @@ export default async function CandidateDashboard() {
 
   return (
     <>
-      <PageHeader title={`Hello, ${firstName}`} description="Here's where things stand." />
+      <div className="mb-5 flex items-center gap-3">
+        <Avatar url={avatarUrl} name={session.full_name} size="lg" />
+        <div className="min-w-0">
+          <h1 className="font-heading text-xl font-semibold sm:text-2xl">Hello, {firstName}</h1>
+          <p className="text-sm text-muted-foreground">
+            {session.avatar_path ? "Here's where things stand." : (
+              <>
+                Profiles with a photo get noticed.{" "}
+                <Link href="/candidate/profile" className="font-medium text-link underline">
+                  Add yours
+                </Link>
+              </>
+            )}
+          </p>
+        </div>
+      </div>
 
       {offers.length > 0 ? (
         <div role="status" className="mb-5 rounded-xl border border-cta bg-warning-soft p-4 text-warning-soft-foreground">

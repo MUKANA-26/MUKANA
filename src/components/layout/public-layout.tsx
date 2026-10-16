@@ -68,6 +68,7 @@ export function PublicFooter() {
         </div>
         <nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2">
           <Link href="/opportunities" className="hover:text-foreground">Opportunities</Link>
+          <Link href="/help" className="hover:text-foreground">Help</Link>
           <Link href="/privacy" className="hover:text-foreground">Privacy policy</Link>
           <Link href="/terms" className="hover:text-foreground">Terms of use</Link>
         </nav>

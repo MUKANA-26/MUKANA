@@ -5,6 +5,8 @@ import { CalendarClock, ChevronLeft, Link2, Mail, MapPin, Phone } from "lucide-r
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireRole } from "@/lib/auth";
+import { signAvatarUrl } from "@/lib/avatars";
+import { Avatar } from "@/components/ui/avatar";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { DEGREE_CLASSES, QUALIFICATION_LEVELS, labelOf } from "@/lib/zimbabwe";
 import { StatusBadge } from "@/features/applications/status-badge";
@@ -34,6 +36,7 @@ export default async function ApplicantPage({ params }: { params: Promise<{ id: 
   const { applicant: a, events, interviews } = data;
   const templates = await getTemplates(company.company.id);
   const p = a.candidate.profile;
+  const avatarUrl = await signAvatarUrl(a.candidate.avatar_path);
   const openInterview = interviews.find((i) => (i.status === "scheduled" || i.status === "confirmed") && new Date(i.scheduled_at) > new Date()) ?? null;
   const isAttachee = p?.candidate_type === "attachee";
 
@@ -45,7 +48,8 @@ export default async function ApplicantPage({ params }: { params: Promise<{ id: 
 
       <header className="rounded-2xl border border-border bg-surface p-4 shadow-sm sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
+          <Avatar url={avatarUrl} name={a.candidate.full_name} size="lg" />
+          <div className="min-w-0 flex-1">
             <h1 className="font-heading text-xl font-semibold sm:text-2xl">{a.candidate.full_name}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Applied for <span className="font-medium text-foreground">{a.opportunity?.title}</span> on {formatDate(a.submitted_at)}

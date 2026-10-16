@@ -72,7 +72,7 @@ export function ApplyPanel({
         <div role="alert" className="rounded-lg bg-warning-soft p-3 text-sm text-warning-soft-foreground">
           <p className="font-semibold">Your profile is {completeness.percent}% complete.</p>
           <p className="mt-1">Still needed: {completeness.missing.join(", ")}.</p>
-          <Link href="/candidate/profile" className="mt-2 inline-block font-semibold underline">
+          <Link href="/candidate/profile/edit" className="mt-2 inline-block font-semibold underline">
             Complete your profile
           </Link>
         </div>

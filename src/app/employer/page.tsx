@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/misc";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { signAvatarUrls } from "@/lib/avatars";
+import { Avatar } from "@/components/ui/avatar";
 import { formatDateTime, timeAgo } from "@/lib/utils";
 import { StatusBadge } from "@/features/applications/status-badge";
 import { getApplicants, getInterviews } from "@/features/employer/queries";
@@ -24,6 +26,7 @@ export default async function EmployerDashboard() {
     supabase.from("opportunities").select("id", { count: "exact", head: true }).eq("status", "published"),
   ]);
   const company = data?.company;
+  const avatars = await signAvatarUrls(applicants.slice(0, 6).map((a) => a.candidate.avatar_path));
   const fresh = applicants.filter((a) => a.status === "submitted").length;
   const shortlisted = applicants.filter((a) => a.status === "shortlisted").length;
 
@@ -100,7 +103,8 @@ export default async function EmployerDashboard() {
               <ul className="divide-y divide-border">
                 {applicants.slice(0, 6).map((a) => (
                   <li key={a.id} className="flex items-center justify-between gap-3 py-2.5">
-                    <div className="min-w-0">
+                    <Avatar url={a.candidate.avatar_path ? avatars[a.candidate.avatar_path] : null} name={a.candidate.full_name} size="sm" />
+                    <div className="min-w-0 flex-1">
                       <Link href={`/employer/applicants/${a.id}`} className="block truncate text-sm font-semibold hover:underline">
                         {a.candidate.full_name}
                       </Link>

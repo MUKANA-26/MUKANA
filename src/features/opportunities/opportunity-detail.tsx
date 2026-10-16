@@ -84,7 +84,7 @@ export async function OpportunityDetailView({ id, trackBase = "/candidate/applic
             </div>
             <h1 className="mt-2 font-heading text-2xl font-bold leading-tight sm:text-3xl">{o.title}</h1>
             <p className="mt-1 flex flex-wrap items-center gap-2 text-muted-foreground">
-              <span className="font-medium text-foreground">{o.companies?.name}</span>
+              <Link href={`/companies/${o.company_id}`} className="font-medium text-foreground hover:underline">{o.companies?.name}</Link>
               {o.companies?.verification_status === "approved" ? <VerifiedBadge /> : null}
               {o.department ? <span>· {o.department}</span> : null}
             </p>
@@ -165,7 +165,7 @@ export async function OpportunityDetailView({ id, trackBase = "/candidate/applic
             typeMismatch ? (
               <div className="rounded-xl border border-border bg-surface-muted p-4 text-sm">
                 This is {o.type === "industrial_attachment" ? "an attachment opportunity" : "a graduate trainee programme"}. Your profile is set up for the other type, so you can browse it but not apply.
-                <Link href="/candidate/profile" className="mt-2 block font-semibold text-link underline">
+                <Link href="/candidate/profile/edit" className="mt-2 block font-semibold text-link underline">
                   Change my candidate type
                 </Link>
               </div>
@@ -216,7 +216,8 @@ export async function OpportunityDetailView({ id, trackBase = "/candidate/applic
 
           {o.companies?.name ? (
             <div className="rounded-xl border border-border bg-surface p-4 text-sm">
-              <p className="font-semibold">{o.companies.name}</p>
+              <Link href={`/companies/${o.company_id}`} className="font-semibold hover:underline">{o.companies.name}</Link>
+              <p className="text-xs text-link">View company page</p>
               <p className="text-muted-foreground">{[o.companies.industry, o.companies.location].filter(Boolean).join(" · ")}</p>
               {session && session.role !== "admin" && !isOwner ? (
                 <div className="mt-2">

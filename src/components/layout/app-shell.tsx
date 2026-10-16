@@ -9,13 +9,15 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { InstallButton } from "@/components/pwa/pwa-provider";
 import { Dialog } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Avatar } from "@/components/ui/avatar";
+import { AccountMenu } from "@/components/layout/account-menu";
 import { NotificationBell } from "@/features/notifications/notification-bell";
 import { PushForeground } from "@/features/notifications/push-foreground";
 import { signOutAction } from "@/features/auth/actions";
 import { clearOfflineCache } from "@/lib/offline-cache";
 import { NAV, type NavItem } from "@/lib/nav";
 import { ROLE_HOME, type Role } from "@/lib/roles";
-import { cn, initials } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 function isActive(pathname: string, item: NavItem) {
   return item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -27,11 +29,15 @@ export function AppShell({
   role,
   userId,
   userName,
+  userEmail = "",
+  avatarUrl = null,
   children,
 }: {
   role: Role;
   userId: string;
   userName: string;
+  userEmail?: string;
+  avatarUrl?: string | null;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -70,6 +76,13 @@ export function AppShell({
           })}
         </nav>
         <div className="space-y-2 border-t border-border p-3">
+          <div className="flex items-center gap-3 rounded-lg bg-surface-muted p-2.5">
+            <Avatar url={avatarUrl} name={userName} size="sm" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">{userName}</p>
+              <p className="truncate text-xs text-muted-foreground">{roleLabel[role]}</p>
+            </div>
+          </div>
           <InstallButton size="sm" className="w-full" />
           <form action={signOutAction} onSubmit={() => clearOfflineCache()}>
             <button
@@ -93,13 +106,7 @@ export function AppShell({
           <div className="flex items-center gap-1">
             <NotificationBell userId={userId} href={`${ROLE_HOME[role]}/notifications`} />
             <ThemeToggle />
-            <span
-              className="ml-1 grid size-9 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
-              title={userName}
-              aria-label={`Signed in as ${userName}`}
-            >
-              {initials(userName)}
-            </span>
+            <AccountMenu role={role} name={userName} email={userEmail} avatarUrl={avatarUrl} />
           </div>
         </header>
 

@@ -37,7 +37,7 @@ export function CompletenessCard({ completeness, showAction = true }: { complete
             </ul>
             {showAction ? (
               <Button asChild size="sm" variant="cta">
-                <Link href="/candidate/profile">Complete profile</Link>
+                <Link href="/candidate/profile/edit">Complete profile</Link>
               </Button>
             ) : null}
           </>

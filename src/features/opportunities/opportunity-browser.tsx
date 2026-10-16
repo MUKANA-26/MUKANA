@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/form";
 import { EmptyState } from "@/components/ui/misc";
 import { FIELDS_OF_STUDY, PROVINCES } from "@/lib/zimbabwe";
+import { getSession } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { OpportunityCard } from "./opportunity-card";
 import { PAGE_SIZE, listOpportunities, type OpportunityFilters } from "./queries";
 
@@ -51,6 +53,20 @@ export async function OpportunityBrowser({
   const filters = parseFilters(params);
   const { items, total, page } = await listOpportunities({ ...filters, candidateType: lockedType });
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  // For signed-in candidates, mark the opportunities they already applied to or saved.
+  const applied = new Set<string>();
+  const saved = new Set<string>();
+  const session = items.length ? await getSession() : null;
+  if (session?.role === "candidate") {
+    const supabase = await createClient();
+    const ids = items.map((o) => o.id);
+    const [a, s] = await Promise.all([
+      supabase.from("applications").select("opportunity_id").eq("candidate_id", session.id).in("opportunity_id", ids),
+      supabase.from("saved_opportunities").select("opportunity_id").eq("user_id", session.id).in("opportunity_id", ids),
+    ]);
+    (a.data ?? []).forEach((r) => applied.add(r.opportunity_id));
+    (s.data ?? []).forEach((r) => saved.add(r.opportunity_id));
+  }
   const hasFilters = Object.entries(params).some(([k, v]) => k !== "page" && one(v));
 
   return (
@@ -155,7 +171,7 @@ export async function OpportunityBrowser({
         <ul className="grid gap-3 md:grid-cols-2">
           {items.map((o) => (
             <li key={o.id} className="relative">
-              <OpportunityCard opportunity={o} href={`${detailBase}/${o.id}`} />
+              <OpportunityCard opportunity={o} href={`${detailBase}/${o.id}`} applied={applied.has(o.id)} saved={saved.has(o.id)} />
             </li>
           ))}
         </ul>

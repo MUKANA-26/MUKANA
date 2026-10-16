@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Building2, CalendarClock, Clock, MapPin, Wallet } from "lucide-react";
+import { Bookmark, Building2, CalendarClock, Check, Clock, MapPin, Wallet } from "lucide-react";
 import { Badge, VerifiedBadge } from "@/components/ui/badge";
 import { companyLogoUrl } from "@/lib/storage";
 import { daysUntil, formatDate } from "@/lib/utils";
@@ -33,6 +33,8 @@ export function OpportunityCard({
   footer,
   matchScore,
   as: Heading = "h2",
+  applied = false,
+  saved = false,
 }: {
   opportunity: OpportunityWithCompany;
   href: string;
@@ -40,7 +42,11 @@ export function OpportunityCard({
   matchScore?: number | null;
   /** Heading level for the title (use h3 when the card sits under an h2 section). */
   as?: "h2" | "h3";
+  /** Candidate-only hints. */
+  applied?: boolean;
+  saved?: boolean;
 }) {
+  const isNew = o.published_at ? Date.now() - new Date(o.published_at).getTime() < 3 * 86_400_000 : false;
   const logo = companyLogoUrl(o.companies?.logo_path);
   return (
     <article className="rounded-xl border border-border bg-surface p-4 shadow-sm transition-shadow hover:shadow-md">
@@ -55,7 +61,13 @@ export function OpportunityCard({
             </Link>
           </Heading>
           <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-            <span>{o.companies?.name ?? "Company"}</span>
+            {o.companies?.id ? (
+              <Link href={`/companies/${o.companies.id}`} className="relative z-10 hover:text-foreground hover:underline">
+                {o.companies.name}
+              </Link>
+            ) : (
+              <span>Company</span>
+            )}
             {o.companies?.verification_status === "approved" ? <VerifiedBadge /> : null}
           </p>
         </div>
@@ -76,6 +88,17 @@ export function OpportunityCard({
         <Badge variant={o.type === "industrial_attachment" ? "info" : "success"}>{TYPE_LABEL[o.type]}</Badge>
         <Badge variant="neutral">{o.mode === "hybrid" ? "Hybrid" : "On-site"}</Badge>
         <DeadlineTag deadline={o.deadline} status={o.status} />
+        {isNew ? <Badge variant="cta">New</Badge> : null}
+        {applied ? (
+          <Badge variant="success">
+            <Check className="size-3.5" aria-hidden /> Applied
+          </Badge>
+        ) : null}
+        {saved && !applied ? (
+          <Badge variant="neutral">
+            <Bookmark className="size-3.5" aria-hidden /> Saved
+          </Badge>
+        ) : null}
       </div>
       {footer ? <div className="relative z-10 mt-3 border-t border-border pt-3">{footer}</div> : null}
     </article>
