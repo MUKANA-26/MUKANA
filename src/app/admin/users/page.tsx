@@ -88,11 +88,11 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
               {u.id !== session.id && u.role !== "admin" ? (
                 <div className="flex flex-wrap gap-2">
                   {u.status === "suspended" ? (
-                    <ActionButton label="Restore" run={() => setUserStatusAction(u.id, "active")} />
+                    <ActionButton label="Restore" run={setUserStatusAction.bind(null, u.id, "active")} />
                   ) : (
-                    <ReasonButton label="Suspend" title={`Suspend ${u.full_name || u.email}?`} description="They can no longer sign in or use Mukana until restored." confirmLabel="Suspend user" variant="outline" required run={(reason) => setUserStatusAction(u.id, "suspended", reason)} />
+                    <ReasonButton label="Suspend" title={`Suspend ${u.full_name || u.email}?`} description="They can no longer sign in or use Mukana until restored." confirmLabel="Suspend user" variant="outline" required run={setUserStatusAction.bind(null, u.id, "suspended")} />
                   )}
-                  <ReasonButton label="Make admin" title="Make this user an administrator?" description="Administrators can moderate everything on the platform. This is logged." confirmLabel="Make admin" icon={<ShieldCheck aria-hidden />} run={() => makeAdminAction(u.id)} />
+                  <ReasonButton label="Make admin" title="Make this user an administrator?" description="Administrators can moderate everything on the platform. This is logged." confirmLabel="Make admin" icon={<ShieldCheck aria-hidden />} run={makeAdminAction.bind(null, u.id)} />
                 </div>
               ) : null}
             </li>

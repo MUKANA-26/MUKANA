@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox, Field, Input } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/password-input";
 import { cn } from "@/lib/utils";
+import { useHydrated } from "@/lib/use-hydrated";
 import { signUpAction } from "./actions";
 import { signUpSchema, type SignUpValues } from "./schemas";
 
@@ -50,6 +51,7 @@ function Segment<T extends string>({
 
 export function SignUpForm({ defaultRole = "candidate" }: { defaultRole?: "candidate" | "employer" }) {
   const router = useRouter();
+  const hydrated = useHydrated();
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
   const {
@@ -84,7 +86,7 @@ export function SignUpForm({ defaultRole = "candidate" }: { defaultRole?: "candi
   });
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-4">
+    <form method="post" onSubmit={onSubmit} noValidate className="space-y-4">
       <div className="space-y-1.5">
         <p className="text-sm font-medium">I am a…</p>
         <Controller
@@ -170,7 +172,7 @@ export function SignUpForm({ defaultRole = "candidate" }: { defaultRole?: "candi
           {error}
         </p>
       ) : null}
-      <Button type="submit" variant="cta" size="lg" className="w-full" loading={pending}>
+      <Button type="submit" variant="cta" size="lg" className="w-full" loading={pending} disabled={!hydrated}>
         Create account
       </Button>
     </form>

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/password-input";
+import { useHydrated } from "@/lib/use-hydrated";
 import { forgotPasswordAction, resendVerificationAction, resetPasswordAction } from "./actions";
 import {
   forgotPasswordSchema,
@@ -17,6 +18,7 @@ import {
 } from "./schemas";
 
 export function ForgotPasswordForm() {
+  const hydrated = useHydrated();
   const [done, setDone] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
   const {
@@ -34,6 +36,7 @@ export function ForgotPasswordForm() {
   }
   return (
     <form
+      method="post"
       noValidate
       className="space-y-4"
       onSubmit={handleSubmit((values) =>
@@ -47,7 +50,7 @@ export function ForgotPasswordForm() {
       <Field label="Email" htmlFor="email" error={errors.email?.message} required>
         <Input id="email" type="email" autoComplete="email" inputMode="email" {...register("email")} />
       </Field>
-      <Button type="submit" variant="cta" size="lg" className="w-full" loading={pending}>
+      <Button type="submit" variant="cta" size="lg" className="w-full" loading={pending} disabled={!hydrated}>
         Send reset link
       </Button>
     </form>
@@ -56,6 +59,7 @@ export function ForgotPasswordForm() {
 
 export function ResetPasswordForm() {
   const router = useRouter();
+  const hydrated = useHydrated();
   const [pending, startTransition] = React.useTransition();
   const {
     register,
@@ -65,6 +69,7 @@ export function ResetPasswordForm() {
 
   return (
     <form
+      method="post"
       noValidate
       className="space-y-4"
       onSubmit={handleSubmit((values) =>
@@ -83,7 +88,7 @@ export function ResetPasswordForm() {
       <Field label="Confirm new password" htmlFor="confirmPassword" error={errors.confirmPassword?.message} required>
         <PasswordInput id="confirmPassword" autoComplete="new-password" {...register("confirmPassword")} />
       </Field>
-      <Button type="submit" variant="cta" size="lg" className="w-full" loading={pending}>
+      <Button type="submit" variant="cta" size="lg" className="w-full" loading={pending} disabled={!hydrated}>
         Update password
       </Button>
     </form>

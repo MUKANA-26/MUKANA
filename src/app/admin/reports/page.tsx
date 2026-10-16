@@ -84,23 +84,23 @@ export default async function ReportsPage() {
                       {r.target_type === "opportunity" && opp ? (
                         <>
                           {opp.suspended ? (
-                            <ActionButton label="Restore opportunity" run={() => moderateOpportunityAction(opp.id, "restore")} />
+                            <ActionButton label="Restore opportunity" run={moderateOpportunityAction.bind(null, opp.id, "restore")} />
                           ) : (
-                            <ReasonButton label="Suspend" title="Suspend this opportunity" description="It is hidden from candidates immediately. The employer is notified." confirmLabel="Suspend" required run={(reason) => moderateOpportunityAction(opp.id, "suspend", reason)} />
+                            <ReasonButton label="Suspend" title="Suspend this opportunity" description="It is hidden from candidates immediately. The employer is notified." confirmLabel="Suspend" required run={moderateOpportunityAction.bind(null, opp.id, "suspend")} />
                           )}
-                          <ReasonButton label="Remove" title="Remove this opportunity" description="Hides and closes it permanently. The employer is notified." confirmLabel="Remove" variant="destructive" required run={(reason) => moderateOpportunityAction(opp.id, "remove", reason)} />
-                          <ReasonButton label="Suspend company" title="Suspend the company" description="All of the company's opportunities are hidden." confirmLabel="Suspend company" required run={(reason) => setCompanySuspendedAction(opp.company_id, true, reason)} />
+                          <ReasonButton label="Remove" title="Remove this opportunity" description="Hides and closes it permanently. The employer is notified." confirmLabel="Remove" variant="destructive" required run={moderateOpportunityAction.bind(null, opp.id, "remove")} />
+                          <ReasonButton label="Suspend company" title="Suspend the company" description="All of the company's opportunities are hidden." confirmLabel="Suspend company" required run={setCompanySuspendedAction.bind(null, opp.company_id, true)} />
                         </>
                       ) : null}
                       {r.target_type === "company" && company ? (
                         company.suspended ? (
-                          <ActionButton label="Restore company" run={() => setCompanySuspendedAction(company.id, false)} />
+                          <ActionButton label="Restore company" run={setCompanySuspendedAction.bind(null, company.id, false)} />
                         ) : (
-                          <ReasonButton label="Suspend company" title="Suspend the company" description="The company and all of its opportunities are hidden." confirmLabel="Suspend company" variant="destructive" required run={(reason) => setCompanySuspendedAction(company.id, true, reason)} />
+                          <ReasonButton label="Suspend company" title="Suspend the company" description="The company and all of its opportunities are hidden." confirmLabel="Suspend company" variant="destructive" required run={setCompanySuspendedAction.bind(null, company.id, true)} />
                         )
                       ) : null}
-                      <ReasonButton label="Mark as actioned" title="Mark as actioned" confirmLabel="Resolve" variant="success" placeholder="What did you do?" run={(note) => resolveReportAction(r.id, "actioned", note)} />
-                      <ReasonButton label="Dismiss" title="Dismiss this report" confirmLabel="Dismiss" placeholder="Why is no action needed?" run={(note) => resolveReportAction(r.id, "dismissed", note)} />
+                      <ReasonButton label="Mark as actioned" title="Mark as actioned" confirmLabel="Resolve" variant="success" placeholder="What did you do?" run={resolveReportAction.bind(null, r.id, "actioned")} />
+                      <ReasonButton label="Dismiss" title="Dismiss this report" confirmLabel="Dismiss" placeholder="Why is no action needed?" run={resolveReportAction.bind(null, r.id, "dismissed")} />
                     </div>
                   </CardContent>
                 </Card>
