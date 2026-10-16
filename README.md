@@ -146,3 +146,7 @@ Members can post text, up to 4 photos or 1 video, tag people with `@`, like and 
 ## 12. Deploying on Netlify instead of Vercel
 
 `netlify.toml` is included. In **Site configuration → Environment variables** add every variable from section 3 (all scopes, including Builds and Functions; they are inlined at build time), set `NEXT_PUBLIC_SITE_URL` to your Netlify URL, then **Deploys → Trigger deploy → Clear cache and deploy site**. In Supabase add `https://YOUR-SITE.netlify.app/auth/callback` to Authentication → URL Configuration → Redirect URLs and set the Site URL. If you see a blocked `/.netlify/scripts/hud` script in the console, turn off the Netlify Drawer / collaborator tools for the site: it is injected by Netlify, not by Mukana.
+
+## 13. Upload limits
+
+Photos (profile photos, company logos, post photos, ID/registration photos) can be up to **25MB**; the browser shrinks them (max 2560px for posts, 1024px for avatars/logos) before upload, so they end up well under 1MB. PDFs stay at 5MB and videos at 30MB. The bucket limits are in `0003`, `0011` and `0012_raise_image_limits.sql`; Supabase's project-wide upload limit must be at least 25MB (the free plan allows 50MB).

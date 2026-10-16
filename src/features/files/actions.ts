@@ -2,7 +2,7 @@
 
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { FILE_RULES, sniffMime, type BucketId, type FileKind } from "./constants";
+import { FILE_RULES, PDF_MAX, sniffMime, type BucketId, type FileKind } from "./constants";
 
 export interface FileActionResult {
   ok: boolean;
@@ -52,6 +52,7 @@ export async function finalizeUploadAction(kind: FileKind, path: string): Promis
   if (!Number.isFinite(total) || total <= 0 || total > rule.maxBytes) return reject("File is too large or empty");
   const head = new Uint8Array((await res.arrayBuffer()).slice(0, 32));
   const real = sniffMime(head);
+  if (real === "application/pdf" && total > PDF_MAX) return reject("PDF files can be up to 5MB");
   if (!real || !rule.mimes.includes(real)) return reject("The file contents don't match an allowed type");
 
   // Attach to the owner's record and clean up the file it replaces.

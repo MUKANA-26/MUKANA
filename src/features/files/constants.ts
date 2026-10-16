@@ -3,7 +3,11 @@ export const MB = 1024 * 1024;
 export type FileKind = "cv" | "placement_letter" | "avatar" | "company_logo" | "verification_doc" | "cv_builder" | "post_media";
 export type BucketId = "cvs" | "placement-letters" | "avatars" | "company-logos" | "verification-docs" | "post-media";
 
-export const POST_IMAGE_MAX = 5 * MB;
+/** Largest original image we accept anywhere (it is shrunk in the browser before upload). */
+export const IMAGE_MAX = 25 * MB;
+export const POST_IMAGE_MAX = IMAGE_MAX;
+/** PDFs keep their own, smaller limit. */
+export const PDF_MAX = 5 * MB;
 export const POST_VIDEO_MAX = 30 * MB;
 
 export interface FileRule {
@@ -32,16 +36,16 @@ export const FILE_RULES: Record<FileKind, FileRule> = {
     folder: "user",
     mimes: ["image/jpeg", "image/png", "image/webp"],
     extensions: ["jpg", "jpeg", "png", "webp"],
-    maxBytes: 2 * MB,
-    label: "Photo (JPG, PNG or WebP, max 2MB)",
+    maxBytes: IMAGE_MAX,
+    label: "Photo (JPG, PNG or WebP, up to 25MB)",
   },
   company_logo: {
     bucket: "company-logos",
     folder: "company",
     mimes: ["image/jpeg", "image/png", "image/webp"],
     extensions: ["jpg", "jpeg", "png", "webp"],
-    maxBytes: 1 * MB,
-    label: "Logo (JPG, PNG or WebP, max 1MB)",
+    maxBytes: IMAGE_MAX,
+    label: "Logo (JPG, PNG or WebP, up to 25MB)",
   },
   post_media: {
     bucket: "post-media",
@@ -49,15 +53,15 @@ export const FILE_RULES: Record<FileKind, FileRule> = {
     mimes: ["image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm", "video/quicktime"],
     extensions: ["jpg", "jpeg", "png", "webp", "mp4", "webm", "mov"],
     maxBytes: 30 * MB,
-    label: "Photo (max 5MB) or video (max 30MB)",
+    label: "Photo (up to 25MB) or video (up to 30MB)",
   },
   verification_doc: {
     bucket: "verification-docs",
     folder: "company",
     mimes: ["application/pdf", "image/jpeg", "image/png"],
     extensions: ["pdf", "jpg", "jpeg", "png"],
-    maxBytes: 5 * MB,
-    label: "Document (PDF, JPG or PNG, max 5MB)",
+    maxBytes: IMAGE_MAX,
+    label: "Document (PDF up to 5MB, or a JPG/PNG photo up to 25MB)",
   },
 };
 
