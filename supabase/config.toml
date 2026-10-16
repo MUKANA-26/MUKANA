@@ -1,0 +1,25 @@
+# Supabase CLI configuration (used by `supabase start`, `supabase db push` and `supabase functions deploy`).
+project_id = "mukana"
+
+[api]
+enabled = true
+schemas = ["public", "storage"]
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+enable_signup = true
+# Email confirmation is REQUIRED before sign-in (Mukana also checks email_confirmed_at before apply/publish).
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+
+# These functions are called by pg_cron / pg_net with an x-cron-secret header, not a user JWT.
+[functions.send-notifications]
+verify_jwt = false
+[functions.deadline-reminders]
+verify_jwt = false
+[functions.interview-reminders]
+verify_jwt = false
+[functions.close-expired-opportunities]
+verify_jwt = false
