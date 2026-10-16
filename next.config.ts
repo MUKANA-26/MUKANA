@@ -37,6 +37,9 @@ const nextConfig: NextConfig = {
   distDir: process.env.MUKANA_DIST_DIR ?? ".next",
   // Dev can use Turbopack (the service worker is disabled in dev); builds use webpack because Serwist needs it.
   turbopack: {},
+  // Lets you open `npm run dev` from a phone on the same Wi-Fi (e.g. http://192.168.x.x:3000).
+  // Without this, Next blocks its dev scripts for other devices and the pages never become interactive.
+  allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.16.*.*", "172.17.*.*", "172.18.*.*", "172.19.*.*", "172.2*.*.*", "172.30.*.*", "172.31.*.*", "*.local"],
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
