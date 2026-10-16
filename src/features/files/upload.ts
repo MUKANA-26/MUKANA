@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { FILE_RULES, sniffMime, type FileKind } from "./constants";
+import { FILE_RULES, POST_IMAGE_MAX, POST_VIDEO_MAX, sniffMime, type FileKind } from "./constants";
 import { finalizeUploadAction } from "./actions";
 import { formatBytes } from "@/lib/utils";
 
@@ -17,7 +17,13 @@ export async function validateFile(kind: FileKind, file: File) {
   const head = new Uint8Array(await file.slice(0, 16).arrayBuffer());
   const real = sniffMime(head);
   if (!real || !rule.mimes.includes(real)) throw new UploadError("The file contents don't match an allowed type.");
-  return { mime: real, ext: real === "application/pdf" ? "pdf" : real === "image/png" ? "png" : real === "image/webp" ? "webp" : "jpg" };
+  if (kind === "post_media") {
+    const isVideo = real.startsWith("video/");
+    if (!isVideo && file.size > POST_IMAGE_MAX) throw new UploadError(`Photos can be up to ${formatBytes(POST_IMAGE_MAX)}.`);
+    if (isVideo && file.size > POST_VIDEO_MAX) throw new UploadError(`Videos can be up to ${formatBytes(POST_VIDEO_MAX)}.`);
+  }
+  const EXT: Record<string, string> = { "application/pdf": "pdf", "image/png": "png", "image/webp": "webp", "image/jpeg": "jpg", "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" };
+  return { mime: real, ext: EXT[real] ?? "jpg" };
 }
 
 /**

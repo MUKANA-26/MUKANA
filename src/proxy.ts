@@ -16,7 +16,7 @@ function buildCsp(nonce: string) {
     `connect-src 'self' ${supabase} ${supabaseWs} https://*.supabase.co wss://*.supabase.co https://*.googleapis.com https://fcm.googleapis.com https://firebaseinstallations.googleapis.com${isDev ? " ws://localhost:* http://localhost:*" : ""}`,
     "worker-src 'self' blob:",
     "manifest-src 'self'",
-    "media-src 'self'",
+    `media-src 'self' blob: ${supabase} https://*.supabase.co`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

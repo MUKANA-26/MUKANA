@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, BellRing, CalendarClock, CheckCheck, FileCheck2, Gavel, ShieldCheck, Sparkles, UserRoundCheck } from "lucide-react";
+import { Bell, BellRing, CalendarClock, CheckCheck, FileCheck2, Gavel, MessageSquare, ShieldCheck, Sparkles, UserRoundCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState, SkeletonList } from "@/components/ui/misc";
 import { createClient } from "@/lib/supabase/client";
@@ -22,6 +22,7 @@ const ICON: Record<NotificationType, React.ComponentType<{ className?: string }>
   offer_response: Gavel,
   deadline_reminder: BellRing,
   verification: ShieldCheck,
+  feed: MessageSquare,
   report: ShieldCheck,
   system: Sparkles,
 };

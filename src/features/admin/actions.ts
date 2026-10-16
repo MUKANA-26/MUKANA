@@ -53,3 +53,8 @@ export async function makeAdminAction(userId: string): Promise<ActionResult> {
   if (!uuid.safeParse(userId).success) return { ok: false, error: "Invalid user" };
   return rpc("admin_create_admin", { p_user: userId }, "User is now an administrator", ["/admin/users"]);
 }
+
+export async function moderatePostAction(postId: string, action: "remove" | "restore", reason?: string): Promise<ActionResult> {
+  if (!uuid.safeParse(postId).success) return { ok: false, error: "Invalid post" };
+  return rpc("admin_moderate_post", { p_post: postId, p_action: action, p_reason: reason?.trim() || null }, action === "remove" ? "Post removed" : "Post restored", ["/admin/reports", "/feed"]);
+}

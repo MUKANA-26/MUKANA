@@ -1,7 +1,10 @@
 export const MB = 1024 * 1024;
 
-export type FileKind = "cv" | "placement_letter" | "avatar" | "company_logo" | "verification_doc" | "cv_builder";
-export type BucketId = "cvs" | "placement-letters" | "avatars" | "company-logos" | "verification-docs";
+export type FileKind = "cv" | "placement_letter" | "avatar" | "company_logo" | "verification_doc" | "cv_builder" | "post_media";
+export type BucketId = "cvs" | "placement-letters" | "avatars" | "company-logos" | "verification-docs" | "post-media";
+
+export const POST_IMAGE_MAX = 5 * MB;
+export const POST_VIDEO_MAX = 30 * MB;
 
 export interface FileRule {
   bucket: BucketId;
@@ -40,6 +43,14 @@ export const FILE_RULES: Record<FileKind, FileRule> = {
     maxBytes: 1 * MB,
     label: "Logo (JPG, PNG or WebP, max 1MB)",
   },
+  post_media: {
+    bucket: "post-media",
+    folder: "user",
+    mimes: ["image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm", "video/quicktime"],
+    extensions: ["jpg", "jpeg", "png", "webp", "mp4", "webm", "mov"],
+    maxBytes: 30 * MB,
+    label: "Photo (max 5MB) or video (max 30MB)",
+  },
   verification_doc: {
     bucket: "verification-docs",
     folder: "company",
@@ -57,5 +68,7 @@ export function sniffMime(bytes: Uint8Array): string | null {
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
   if (bytes[0] === 0x89 && ascii(1, 4) === "PNG") return "image/png";
   if (ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP") return "image/webp";
+  if (ascii(4, 8) === "ftyp") return ascii(8, 10) === "qt" ? "video/quicktime" : "video/mp4";
+  if (bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) return "video/webm";
   return null;
 }

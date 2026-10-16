@@ -42,6 +42,7 @@ export async function deleteAccountAction(confirmation: string): Promise<ActionR
       purgeFolder("cvs", session.id),
       purgeFolder("placement-letters", session.id),
       purgeFolder("avatars", session.id),
+      purgeFolder("post-media", session.id),
       ...(company ? [purgeFolder("company-logos", company.id), purgeFolder("verification-docs", company.id)] : []),
     ]);
     const { error } = await createServiceClient().auth.admin.deleteUser(session.id);

@@ -7,6 +7,7 @@ import {
   ClipboardList,
   FileText,
   Flag,
+  Newspaper,
   LayoutDashboard,
   ScrollText,
   Search,
@@ -32,9 +33,10 @@ export interface NavItem {
 export const NAV: Record<Role, NavItem[]> = {
   candidate: [
     { href: "/candidate", label: "Home", icon: LayoutDashboard, mobile: true, exact: true },
+    { href: "/feed", label: "Feed", icon: Newspaper, mobile: true },
     { href: "/candidate/opportunities", label: "Browse", icon: Search, mobile: true },
     { href: "/candidate/applications", label: "Applications", icon: ClipboardList, mobile: true },
-    { href: "/candidate/saved", label: "Saved", icon: BookmarkCheck, mobile: true },
+    { href: "/candidate/saved", label: "Saved", icon: BookmarkCheck },
     { href: "/candidate/recommended", label: "Recommended", icon: Sparkles },
     { href: "/candidate/profile", label: "Profile", icon: UserRound },
     { href: "/candidate/cv-builder", label: "CV builder", icon: FileText },
@@ -43,9 +45,10 @@ export const NAV: Record<Role, NavItem[]> = {
   ],
   employer: [
     { href: "/employer", label: "Home", icon: LayoutDashboard, mobile: true, exact: true },
+    { href: "/feed", label: "Feed", icon: Newspaper, mobile: true },
     { href: "/employer/opportunities", label: "Opportunities", icon: ClipboardList, mobile: true },
     { href: "/employer/applicants", label: "Applicants", icon: Users, mobile: true },
-    { href: "/employer/interviews", label: "Interviews", icon: CalendarClock, mobile: true },
+    { href: "/employer/interviews", label: "Interviews", icon: CalendarClock },
     { href: "/employer/analytics", label: "Analytics", icon: BarChart3 },
     { href: "/employer/company", label: "Company", icon: Building2 },
     { href: "/employer/templates", label: "Templates", icon: FileText },
@@ -54,6 +57,7 @@ export const NAV: Record<Role, NavItem[]> = {
   ],
   admin: [
     { href: "/admin", label: "Overview", icon: LayoutDashboard, mobile: true, exact: true },
+    { href: "/feed", label: "Feed", icon: Newspaper },
     { href: "/admin/verifications", label: "Verifications", icon: ShieldCheck, mobile: true },
     { href: "/admin/reports", label: "Reports", icon: Flag, mobile: true },
     { href: "/admin/users", label: "Users", icon: Users, mobile: true },

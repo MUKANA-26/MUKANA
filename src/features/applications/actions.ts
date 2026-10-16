@@ -71,7 +71,7 @@ export async function respondToInterviewAction(interviewId: string, accept: bool
 
 // ------------------------------------------------------------------ report (any signed-in user)
 const reportSchema = z.object({
-  targetType: z.enum(["opportunity", "company"]),
+  targetType: z.enum(["opportunity", "company", "post"]),
   targetId: uuid,
   reason: z.enum(["scam_or_fee", "misleading", "discriminatory", "inappropriate", "duplicate", "other"]),
   details: z.string().trim().max(2000).optional(),
@@ -88,6 +88,7 @@ export async function reportAction(input: z.input<typeof reportSchema>): Promise
     target_type: v.targetType,
     opportunity_id: v.targetType === "opportunity" ? v.targetId : null,
     company_id: v.targetType === "company" ? v.targetId : null,
+    post_id: v.targetType === "post" ? v.targetId : null,
     reason: v.reason,
     details: v.details || null,
   });

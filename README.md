@@ -6,7 +6,7 @@ Built with Next.js (App Router, TypeScript strict), Tailwind CSS, Supabase, Serw
 ```
 src/app            routes (public, auth, candidate, employer, admin)
 src/features       feature modules: auth, profile, opportunities, applications, matching, employer,
-                   notifications, files (uploads + PDF viewer), cv (builder), admin, settings
+                   notifications, feed (posts, photos/videos, @tags), files (uploads + PDF viewer), cv, admin, settings
 src/components     UI kit (shadcn-style), layout, PWA provider
 src/sw.ts          the ONE service worker (Serwist + FCM background handler)
 supabase/          migrations, seed.sql, Edge Functions, SQL tests
@@ -55,7 +55,7 @@ Only `NEXT_PUBLIC_*` values may reach the browser, and they contain only public 
 2. Apply the database. Either:
    ```bash
    supabase link --project-ref YOUR-REF
-   supabase db push           # runs supabase/migrations/0001 → 0010 in order
+   supabase db push           # runs supabase/migrations/0001 → 0011 in order
    ```
    or paste each file of `supabase/migrations/` into the SQL editor in numeric order.
    This creates all tables, enums, indexes, **RLS policies on every table**, the storage buckets and policies, triggers and the matching function.
@@ -134,3 +134,11 @@ The SQL tests cover sign-up rules, role escalation attempts, RLS between employe
 - **Privacy:** consent at sign-up (enforced in the database), privacy/terms pages, JSON data export and account deletion in Settings.
 
 > The privacy policy and terms are good-faith drafts. Have a Zimbabwean lawyer review them against the Cyber and Data Protection Act [Chapter 12:07] before launch.
+
+## 11. Community feed
+
+Members can post text, up to 4 photos or 1 video, tag people with `@`, like and comment (`/feed`). Migration `0011_feed.sql` adds the tables, a public `post-media` bucket (30MB files), moderation and notifications. If your project already ran 0001-0010, just run `supabase/RUN-ME-feed-update.sql` (same as 0011) in the SQL editor.
+
+- Posts and comments are created only through `create_post()` / `add_comment()` (verified email, rate limits, media checks); uploads are re-checked by magic bytes on the server.
+- Only people who take part in the feed are visible (`feed_people` view: name, role, photo, headline, company); emails, phones and CVs are never exposed.
+- Any post can be reported; admins remove or restore it under Admin → Reports (audited, author notified).

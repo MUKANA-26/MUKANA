@@ -30,6 +30,7 @@ export type NotificationType =
   | "offer_response"
   | "deadline_reminder"
   | "verification"
+  | "feed"
   | "report"
   | "system";
 
