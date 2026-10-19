@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { isOpportunityType, type OpportunityType } from "@/lib/opportunity-types";
 import type { OpportunityWithCompany } from "@/types/db";
 
 export const PAGE_SIZE = 20;
@@ -18,8 +19,8 @@ export interface OpportunityFilters {
   startTo?: string;
   deadlineBefore?: string;
   page?: number;
-  /** Restrict to one candidate type (e.g. a candidate only sees their own kind by default). */
-  candidateType?: "industrial_attachment" | "graduate_trainee";
+  /** Restrict to the types a candidate can apply for (a candidate only sees their own kinds by default). */
+  candidateTypes?: OpportunityType[];
 }
 
 /** PostgREST `or`/`ilike` values must not contain filter metacharacters. */
@@ -38,8 +39,8 @@ export async function listOpportunities(filters: OpportunityFilters) {
     .order("published_at", { ascending: false, nullsFirst: false })
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
-  const type = filters.type === "industrial_attachment" || filters.type === "graduate_trainee" ? filters.type : filters.candidateType;
-  if (type) query = query.eq("type", type);
+  if (isOpportunityType(filters.type) && (!filters.candidateTypes || filters.candidateTypes.includes(filters.type))) query = query.eq("type", filters.type);
+  else if (filters.candidateTypes) query = query.in("type", filters.candidateTypes);
   if (filters.q) {
     const q = clean(filters.q);
     if (q) query = query.ilike("search_text", `%${q.toLowerCase()}%`);

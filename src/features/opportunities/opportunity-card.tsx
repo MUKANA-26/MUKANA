@@ -4,12 +4,10 @@ import { Bookmark, Building2, CalendarClock, Check, Clock, MapPin, Wallet } from
 import { Badge, VerifiedBadge } from "@/components/ui/badge";
 import { companyLogoUrl } from "@/lib/storage";
 import { daysUntil, formatDate } from "@/lib/utils";
+import { TYPE_LABEL } from "@/lib/opportunity-types";
 import type { OpportunityWithCompany } from "@/types/db";
 
-export const TYPE_LABEL = {
-  industrial_attachment: "Industrial attachment",
-  graduate_trainee: "Graduate trainee",
-} as const;
+export { TYPE_LABEL } from "@/lib/opportunity-types";
 
 export function stipendLabel(o: Pick<OpportunityWithCompany, "stipend_type" | "stipend_amount" | "stipend_currency">) {
   if (o.stipend_type === "unpaid") return "Unpaid";
@@ -85,7 +83,7 @@ export function OpportunityCard({
         {o.start_date ? <span className="inline-flex items-center gap-1.5"><CalendarClock className="size-4" aria-hidden /> Starts {formatDate(o.start_date)}</span> : null}
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Badge variant={o.type === "industrial_attachment" ? "info" : "success"}>{TYPE_LABEL[o.type]}</Badge>
+        <Badge variant={o.type === "industrial_attachment" || o.type === "internship" ? "info" : "success"}>{TYPE_LABEL[o.type]}</Badge>
         <Badge variant="neutral">{o.mode === "hybrid" ? "Hybrid" : "On-site"}</Badge>
         <DeadlineTag deadline={o.deadline} status={o.status} />
         {isNew ? <Badge variant="cta">New</Badge> : null}

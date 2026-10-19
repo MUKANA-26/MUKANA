@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { TYPE_LABEL, type OpportunityType } from "@/lib/opportunity-types";
 import { createAnonClient } from "@/lib/supabase/server";
 
 export const alt = "Mukana opportunity";
@@ -23,7 +24,7 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
       title = data.title;
       company = c?.name ?? company;
       verified = c?.verification_status === "approved";
-      meta = `${data.type === "industrial_attachment" ? "Industrial attachment" : "Graduate trainee"} · ${data.location} · ${data.stipend_type === "paid" ? "Paid" : "Unpaid"} · Apply by ${data.deadline}`;
+      meta = `${TYPE_LABEL[data.type as OpportunityType] ?? "Opportunity"} · ${data.location} · ${data.stipend_type === "paid" ? "Paid" : "Unpaid"} · Apply by ${data.deadline}`;
     }
   }
   return new ImageResponse(

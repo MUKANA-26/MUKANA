@@ -205,7 +205,8 @@ export async function saveTemplateAction(input: z.input<typeof templateSchema>):
   const parsed = templateSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Check the template" };
   const supabase = await createClient();
-  const { data: company } = await supabase.from("companies").select("id").eq("owner_id", session.id).maybeSingle();
+  const { data: companyId } = await supabase.rpc("acting_company_id");
+  const company = companyId ? { id: companyId as string } : null;
   if (!company) return { ok: false, error: "Company not found" };
   const { error } = await supabase
     .from("message_templates")
@@ -218,7 +219,8 @@ export async function saveTemplateAction(input: z.input<typeof templateSchema>):
 export async function resetTemplateAction(kind: "shortlist" | "interview" | "offer" | "rejection"): Promise<ActionResult> {
   const session = await requireRole("employer");
   const supabase = await createClient();
-  const { data: company } = await supabase.from("companies").select("id").eq("owner_id", session.id).maybeSingle();
+  const { data: companyId } = await supabase.rpc("acting_company_id");
+  const company = companyId ? { id: companyId as string } : null;
   if (!company) return { ok: false, error: "Company not found" };
   await supabase.from("message_templates").delete().eq("company_id", company.id).eq("kind", kind);
   revalidatePath("/employer/templates");

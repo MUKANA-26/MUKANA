@@ -13,7 +13,7 @@ const wholeNumber = (min: number, max: number, label: string) =>
 
 export const opportunitySchema = z
   .object({
-    type: z.enum(["industrial_attachment", "graduate_trainee"]),
+    type: z.enum(["industrial_attachment", "internship", "graduate_trainee", "entry_level"]),
     title: z.string().trim().min(3, "Title must be at least 3 characters").max(160),
     department: optionalText(120),
     description: z.string().trim().min(20, "Describe the opportunity (at least 20 characters)").max(8000),

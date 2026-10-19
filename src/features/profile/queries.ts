@@ -14,9 +14,13 @@ export async function getCompleteness(userId: string): Promise<Completeness> {
   return (data as Completeness | null) ?? { percent: 0, missing: [], complete: false };
 }
 
+/** The company the signed-in employer acts for: the one they were added to as a recruiter, otherwise their own. */
 export async function getMyCompany(userId: string) {
   const supabase = await createClient();
-  const { data: company } = await supabase.from("companies").select("*").eq("owner_id", userId).maybeSingle();
+  const { data: actingId } = await supabase.rpc("acting_company_id");
+  const { data: company } = actingId
+    ? await supabase.from("companies").select("*").eq("id", actingId as string).maybeSingle()
+    : await supabase.from("companies").select("*").eq("owner_id", userId).maybeSingle();
   if (!company) return null;
   const [{ data: priv }, { data: requests }] = await Promise.all([
     supabase.from("company_private").select("*").eq("company_id", company.id).maybeSingle(),
@@ -29,6 +33,8 @@ export async function getMyCompany(userId: string) {
   ]);
   return {
     company: company as CompanyRow,
+    /** False for recruiters: they work for the company but cannot edit its profile or verification. */
+    isOwner: company.owner_id === userId,
     priv: (priv as CompanyPrivateRow | null) ?? null,
     requests: (requests as VerificationRequestRow[] | null) ?? [],
   };

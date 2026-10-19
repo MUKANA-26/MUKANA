@@ -23,7 +23,7 @@ import { EventLog, StatusStepper } from "./timeline";
 
 interface Detail {
   application: ApplicationRow & {
-    opportunities: { id: string; title: string; type: "industrial_attachment" | "graduate_trainee"; location: string; start_date: string | null; companies: { name: string } | null } | null;
+    opportunities: { id: string; title: string; type: "industrial_attachment" | "internship" | "graduate_trainee" | "entry_level"; location: string; start_date: string | null; companies: { name: string } | null } | null;
   };
   events: ApplicationEventRow[];
   interviews: InterviewRow[];

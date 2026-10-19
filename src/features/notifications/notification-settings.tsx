@@ -16,7 +16,14 @@ interface Prefs {
   email_enabled: boolean;
   whatsapp_opt_in: boolean;
   whatsapp_number: string | null;
+  cat_network: boolean;
+  cat_messages: boolean;
+  cat_feed: boolean;
+  cat_jobs: boolean;
+  weekly_digest: boolean;
 }
+
+const DEFAULT_PREFS: Prefs = { push_enabled: true, email_enabled: true, whatsapp_opt_in: false, whatsapp_number: null, cat_network: true, cat_messages: true, cat_feed: true, cat_jobs: true, weekly_digest: true };
 
 export function NotificationSettings({ userId }: { userId: string }) {
   const supabase = React.useMemo(() => createClient(), []);
@@ -36,8 +43,8 @@ export function NotificationSettings({ userId }: { userId: string }) {
   const { data: prefs } = useQuery({
     queryKey: ["notification-prefs", userId],
     queryFn: async (): Promise<Prefs> => {
-      const { data } = await supabase.from("notification_preferences").select("push_enabled, email_enabled, whatsapp_opt_in, whatsapp_number").eq("user_id", userId).maybeSingle();
-      return (data as Prefs | null) ?? { push_enabled: true, email_enabled: true, whatsapp_opt_in: false, whatsapp_number: null };
+      const { data } = await supabase.from("notification_preferences").select("push_enabled, email_enabled, whatsapp_opt_in, whatsapp_number, cat_network, cat_messages, cat_feed, cat_jobs, weekly_digest").eq("user_id", userId).maybeSingle();
+      return (data as Prefs | null) ?? DEFAULT_PREFS;
     },
   });
 
@@ -46,7 +53,7 @@ export function NotificationSettings({ userId }: { userId: string }) {
   }, [prefs?.whatsapp_number]);
 
   const save = async (patch: Partial<Prefs>) => {
-    const next = { ...(prefs as Prefs), ...patch };
+    const next = { ...DEFAULT_PREFS, ...(prefs ?? {}), ...patch };
     const { error } = await supabase.from("notification_preferences").upsert({ user_id: userId, ...next });
     if (error) return toast.error("Could not save your preference");
     await queryClient.invalidateQueries({ queryKey: ["notification-prefs", userId] });
@@ -140,6 +147,35 @@ export function NotificationSettings({ userId }: { userId: string }) {
               <span className="block text-muted-foreground">Interview invitations and job offers are also sent to your email.</span>
             </span>
           </label>
+        </fieldset>
+
+        {/* Categories */}
+        <fieldset className="space-y-3">
+          <legend className="text-sm font-semibold">Choose what to be notified about</legend>
+          {(
+            [
+              ["cat_messages", "Messages", "New chat messages."],
+              ["cat_network", "Network", "Connection invitations, follows and recommendations."],
+              ["cat_feed", "Feed", "Tags, comments, likes and reposts."],
+              ["cat_jobs", "Opportunities", "Job alerts, invitations to apply, deadline reminders and your weekly picks."],
+            ] as const
+          ).map(([key, label, hint]) => (
+            <label key={key} className="flex items-start gap-3 text-sm">
+              <Checkbox className="mt-0.5" checked={prefs?.[key] ?? true} onChange={(e) => void save({ [key]: e.target.checked })} />
+              <span>
+                <span className="font-medium">{label}</span>
+                <span className="block text-muted-foreground">{hint}</span>
+              </span>
+            </label>
+          ))}
+          <label className="flex items-start gap-3 text-sm">
+            <Checkbox className="mt-0.5" checked={prefs?.weekly_digest ?? true} onChange={(e) => void save({ weekly_digest: e.target.checked })} />
+            <span>
+              <span className="font-medium">Weekly digest (candidates)</span>
+              <span className="block text-muted-foreground">Every Monday morning: your best new matches from the past week.</span>
+            </span>
+          </label>
+          <p className="text-xs text-muted-foreground">Application updates, interviews and offers are always sent, because you would not want to miss them.</p>
         </fieldset>
 
         {/* WhatsApp opt-in */}

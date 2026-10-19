@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import { TagInput } from "@/components/ui/tag-input";
 import { FIELDS_OF_STUDY, LEVELS, PROVINCES, QUALIFICATION_LEVELS } from "@/lib/zimbabwe";
+import { OPPORTUNITY_TYPES, showsMinLevel, showsMinQualification } from "@/lib/opportunity-types";
 import type { OpportunityRow } from "@/types/db";
 import { saveOpportunityAction } from "./actions";
 import { opportunitySchema, type OpportunityValues } from "./schemas";
@@ -117,8 +118,11 @@ export function OpportunityForm({
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <Field label="Type" htmlFor="type" required>
             <Select id="type" {...register("type")} disabled={alreadyPublished}>
-              <option value="industrial_attachment">Industrial attachment</option>
-              <option value="graduate_trainee">Graduate trainee programme</option>
+              {OPPORTUNITY_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.formLabel}
+                </option>
+              ))}
             </Select>
           </Field>
           <Field label="Department" htmlFor="department" error={errors.department?.message}>
@@ -162,7 +166,7 @@ export function OpportunityForm({
               />
             </Field>
           </div>
-          {type === "industrial_attachment" ? (
+          {showsMinLevel(type) ? (
             <Field label="Minimum level" htmlFor="minLevel" error={errors.minLevel?.message} hint="Part and semester, e.g. 2.2">
               <Select id="minLevel" {...register("minLevel")}>
                 <option value="">No minimum</option>
@@ -173,7 +177,8 @@ export function OpportunityForm({
                 ))}
               </Select>
             </Field>
-          ) : (
+          ) : null}
+          {showsMinQualification(type) ? (
             <Field label="Minimum qualification" htmlFor="minQualification" error={errors.minQualification?.message}>
               <Select id="minQualification" {...register("minQualification")}>
                 <option value="">No minimum</option>
@@ -184,7 +189,7 @@ export function OpportunityForm({
                 ))}
               </Select>
             </Field>
-          )}
+          ) : null}
           <Field label="Number of slots" htmlFor="slots" error={errors.slots?.message} required>
             <Input id="slots" inputMode="numeric" {...register("slots")} />
           </Field>

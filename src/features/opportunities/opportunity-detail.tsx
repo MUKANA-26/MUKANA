@@ -14,6 +14,7 @@ import { getCompleteness } from "@/features/profile/queries";
 import type { ApplicationStatus, Completeness, MatchResult } from "@/types/db";
 import { ApplyPanel } from "./apply-panel";
 import { DeadlineTag, TYPE_LABEL, stipendLabel } from "./opportunity-card";
+import { fitsCandidate, showsMinLevel, showsMinQualification, typeSentence, type CandidateType } from "@/lib/opportunity-types";
 import { ReportButton, SaveButton, ShareButton } from "./opportunity-buttons";
 import { getOpportunity } from "./queries";
 
@@ -59,10 +60,10 @@ export async function OpportunityDetailView({ id, trackBase = "/candidate/applic
     completeness = comp;
     match = (matchRes.data as MatchResult | null) ?? null;
     const t = cp.data?.candidate_type as string | undefined;
-    typeMismatch = Boolean(t) && (t === "attachee") !== (o.type === "industrial_attachment");
+    typeMismatch = Boolean(t) && !fitsCandidate(o.type, t as CandidateType);
   } else if (session?.role === "employer") {
-    const { data } = await supabase.from("companies").select("id").eq("owner_id", session.id).maybeSingle();
-    isOwner = data?.id === o.company_id;
+    const { data } = await supabase.rpc("manages_company", { p_company: o.company_id });
+    isOwner = data === true;
   }
 
   const left = daysUntil(o.deadline);
@@ -78,7 +79,7 @@ export async function OpportunityDetailView({ id, trackBase = "/candidate/applic
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={o.type === "industrial_attachment" ? "info" : "success"}>{TYPE_LABEL[o.type]}</Badge>
+              <Badge variant={o.type === "industrial_attachment" || o.type === "internship" ? "info" : "success"}>{TYPE_LABEL[o.type]}</Badge>
               <DeadlineTag deadline={o.deadline} status={o.status} />
               {o.status === "draft" ? <Badge variant="warning">Draft preview</Badge> : null}
             </div>
@@ -164,7 +165,7 @@ export async function OpportunityDetailView({ id, trackBase = "/candidate/applic
           ) : session.role === "candidate" ? (
             typeMismatch ? (
               <div className="rounded-xl border border-border bg-surface-muted p-4 text-sm">
-                This is {o.type === "industrial_attachment" ? "an attachment opportunity" : "a graduate trainee programme"}. Your profile is set up for the other type, so you can browse it but not apply.
+                This is {typeSentence(o.type)}. Your profile is set up for the other type, so you can browse it but not apply.
                 <Link href="/candidate/profile/edit" className="mt-2 block font-semibold text-link underline">
                   Change my candidate type
                 </Link>
@@ -209,9 +210,16 @@ export async function OpportunityDetailView({ id, trackBase = "/candidate/applic
             <Fact icon={Users} label="Slots">
               {o.slots}
             </Fact>
-            <Fact icon={GraduationCap} label={o.type === "industrial_attachment" ? "Minimum level" : "Minimum qualification"}>
-              {o.type === "industrial_attachment" ? (o.min_level ? Number(o.min_level).toFixed(1) : "None") : o.min_qualification ? labelOf(QUALIFICATION_LEVELS, o.min_qualification) : "None"}
-            </Fact>
+            {showsMinLevel(o.type) ? (
+              <Fact icon={GraduationCap} label="Minimum level">
+                {o.min_level ? Number(o.min_level).toFixed(1) : "None"}
+              </Fact>
+            ) : null}
+            {showsMinQualification(o.type) ? (
+              <Fact icon={GraduationCap} label="Minimum qualification">
+                {o.min_qualification ? labelOf(QUALIFICATION_LEVELS, o.min_qualification) : "None"}
+              </Fact>
+            ) : null}
           </dl>
 
           {o.companies?.name ? (

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/features/auth/actions";
+import { showsMinLevel, showsMinQualification } from "@/lib/opportunity-types";
 import { opportunitySchema, type OpportunityValues } from "./schemas";
 
 const nul = (v: string | number | undefined | null) => (v === undefined || v === null || v === "" ? null : v);
@@ -24,7 +25,8 @@ export async function saveOpportunityAction(
   const v = parsed.data;
   const supabase = await createClient();
 
-  const { data: company } = await supabase.from("companies").select("id, verification_status").eq("owner_id", session.id).maybeSingle();
+  const { data: companyId } = await supabase.rpc("acting_company_id");
+  const { data: company } = companyId ? await supabase.from("companies").select("id, verification_status").eq("id", companyId as string).maybeSingle() : { data: null };
   if (!company) return { ok: false, error: "Set up your company profile first" };
   if (intent === "publish" && company.verification_status !== "approved") {
     return { ok: false, error: "Your company must be verified before you can publish. You can save this as a draft." };
@@ -39,8 +41,8 @@ export async function saveOpportunityAction(
     requirements: nul(v.requirements),
     skills: v.skills,
     eligible_fields: v.eligibleFields,
-    min_level: v.type === "industrial_attachment" ? nul(v.minLevel) : null,
-    min_qualification: v.type === "graduate_trainee" ? nul(v.minQualification) : null,
+    min_level: showsMinLevel(v.type) ? nul(v.minLevel) : null,
+    min_qualification: showsMinQualification(v.type) ? nul(v.minQualification) : null,
     slots: Number(v.slots),
     location: v.location,
     province: nul(v.province),

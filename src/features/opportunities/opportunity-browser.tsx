@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Search, SearchX } from "lucide-react";
+import { MapPin, Search, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/form";
 import { EmptyState } from "@/components/ui/misc";
 import { FIELDS_OF_STUDY, PROVINCES } from "@/lib/zimbabwe";
 import { getSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { OPPORTUNITY_TYPES, type OpportunityType } from "@/lib/opportunity-types";
 import { OpportunityCard } from "./opportunity-card";
 import { PAGE_SIZE, listOpportunities, type OpportunityFilters } from "./queries";
 
@@ -42,16 +43,20 @@ export async function OpportunityBrowser({
   params,
   basePath,
   detailBase,
-  lockedType,
+  lockedTypes,
+  myProvince,
 }: {
   params: Params;
   basePath: string;
   /** Where the card links go, e.g. "/opportunities" or "/candidate/opportunities". */
   detailBase: string;
-  lockedType?: "industrial_attachment" | "graduate_trainee";
+  /** For candidates: only the types they can apply for. */
+  lockedTypes?: OpportunityType[];
+  /** For candidates: their province, powering the "Near me" shortcut. */
+  myProvince?: string | null;
 }) {
   const filters = parseFilters(params);
-  const { items, total, page } = await listOpportunities({ ...filters, candidateType: lockedType });
+  const { items, total, page } = await listOpportunities({ ...filters, candidateTypes: lockedTypes });
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   // For signed-in candidates, mark the opportunities they already applied to or saved.
   const applied = new Set<string>();
@@ -81,16 +86,30 @@ export async function OpportunityBrowser({
             Search
           </Button>
         </div>
+        {myProvince ? (
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <Link
+              href={pageHref(basePath, { ...params, province: filters.province === myProvince ? undefined : myProvince }, 1)}
+              aria-pressed={filters.province === myProvince}
+              className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 font-medium ${filters.province === myProvince ? "border-primary bg-primary text-primary-foreground" : "border-border bg-surface hover:bg-surface-muted"}`}
+            >
+              <MapPin className="size-4" aria-hidden /> Near me · {myProvince}
+            </Link>
+          </div>
+        ) : null}
         <details className="group" open={hasFilters}>
           <summary className="cursor-pointer select-none text-sm font-semibold text-link">Filters</summary>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {!lockedType ? (
+            {!lockedTypes || lockedTypes.length > 1 ? (
               <label className="space-y-1 text-sm font-medium">
                 Type
                 <Select name="type" defaultValue={filters.type}>
                   <option value="">All types</option>
-                  <option value="industrial_attachment">Industrial attachment</option>
-                  <option value="graduate_trainee">Graduate trainee</option>
+                  {OPPORTUNITY_TYPES.filter((t) => !lockedTypes || lockedTypes.includes(t.value)).map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
                 </Select>
               </label>
             ) : null}

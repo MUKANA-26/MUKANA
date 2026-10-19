@@ -3,7 +3,8 @@
 export type CandidateType = "attachee" | "graduate_trainee";
 export type QualificationLevel = "certificate" | "diploma" | "bachelors" | "honours" | "masters" | "phd";
 export type DegreeClass = "first" | "upper_second" | "lower_second" | "third" | "pass";
-export type OpportunityType = "industrial_attachment" | "graduate_trainee";
+import type { OpportunityType } from "@/lib/opportunity-types";
+export type { OpportunityType };
 export type OpportunityStatus = "draft" | "published" | "closed";
 export type WorkMode = "on_site" | "hybrid";
 export type StipendType = "paid" | "unpaid";
@@ -33,6 +34,9 @@ export type NotificationType =
   | "feed"
   | "network"
   | "message"
+  | "job_alert"
+  | "digest"
+  | "invitation"
   | "report"
   | "system";
 
