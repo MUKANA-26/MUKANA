@@ -6,6 +6,8 @@ export interface FeedPerson {
   headline: string | null;
   company_id: string | null;
   company_name: string | null;
+  verified_badge?: boolean;
+  open_to_work?: boolean;
 }
 
 export interface FeedMedia {
@@ -23,11 +25,17 @@ export interface FeedPost {
   like_count: number;
   comment_count: number;
   created_at: string;
+  edited_at: string | null;
+  repost_of: string | null;
+  hashtags: string[];
   media: FeedMedia[];
   author: FeedPerson | null;
   /** Signed URL for the author's photo, when visible. */
   avatarUrl: string | null;
   likedByMe: boolean;
+  savedByMe: boolean;
+  /** The original post when this one is a repost. */
+  original: FeedPost | null;
 }
 
 export interface FeedComment {

@@ -4,7 +4,7 @@
  */
 export const MENTION_RE = /@\[([^\]]{1,80})\]\(([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\)/g;
 
-export type Segment = { type: "text"; text: string } | { type: "mention"; name: string; id: string } | { type: "link"; url: string };
+export type Segment = { type: "text"; text: string } | { type: "mention"; name: string; id: string } | { type: "link"; url: string } | { type: "hashtag"; tag: string };
 
 const URL_RE = /(https?:\/\/[^\s<]+[^\s<.,;:!?)"'\]])/g;
 
@@ -12,14 +12,24 @@ const URL_RE = /(https?:\/\/[^\s<]+[^\s<.,;:!?)"'\]])/g;
 export function parseBody(body: string): Segment[] {
   const out: Segment[] = [];
   let last = 0;
+  const pushPlain = (text: string) => {
+    let i = 0;
+    for (const m of text.matchAll(/(^|\s)#([A-Za-z0-9_]{2,40})/g)) {
+      const start = m.index! + m[1]!.length;
+      if (start > i) out.push({ type: "text", text: text.slice(i, start) });
+      out.push({ type: "hashtag", tag: m[2]!.toLowerCase() });
+      i = start + m[2]!.length + 1;
+    }
+    if (i < text.length) out.push({ type: "text", text: text.slice(i) });
+  };
   const pushText = (text: string) => {
     let i = 0;
     for (const m of text.matchAll(URL_RE)) {
-      if (m.index! > i) out.push({ type: "text", text: text.slice(i, m.index) });
+      if (m.index! > i) pushPlain(text.slice(i, m.index));
       out.push({ type: "link", url: m[0] });
       i = m.index! + m[0].length;
     }
-    if (i < text.length) out.push({ type: "text", text: text.slice(i) });
+    if (i < text.length) pushPlain(text.slice(i));
   };
   for (const m of body.matchAll(MENTION_RE)) {
     if (m.index! > last) pushText(body.slice(last, m.index));

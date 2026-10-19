@@ -84,3 +84,23 @@ export async function deleteCommentAction(commentId: string): Promise<ActionResu
   if (error || !data?.length) return { ok: false, error: "You can't delete this comment." };
   return { ok: true, message: "Comment deleted" };
 }
+
+export async function editPostAction(postId: string, body: string): Promise<ActionResult> {
+  await requireUser();
+  if (!uuid.safeParse(postId).success) return { ok: false, error: "Invalid post" };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("edit_post", { p_post: postId, p_body: body.slice(0, 3000) });
+  if (error) return { ok: false, error: dbMessage(error.message) };
+  revalidatePath("/feed");
+  return { ok: true, message: "Post updated" };
+}
+
+export async function repostAction(postId: string, comment: string): Promise<ActionResult & { postId?: string }> {
+  await requireUser();
+  if (!uuid.safeParse(postId).success) return { ok: false, error: "Invalid post" };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("create_post", { p_body: comment.slice(0, 3000), p_media: [], p_repost_of: postId });
+  if (error) return { ok: false, error: dbMessage(error.message) };
+  revalidatePath("/feed");
+  return { ok: true, postId: data as string, message: "Reposted" };
+}
