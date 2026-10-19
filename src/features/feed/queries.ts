@@ -34,6 +34,8 @@ interface Options {
   search?: string | null;
   authorId?: string;
   postId?: string;
+  /** Posts of one interest group (members only; the database enforces it). */
+  groupId?: string;
 }
 
 /** Turns raw rows into posts: authors, photos, the viewer's likes/saves and the original of every repost. */
@@ -71,12 +73,14 @@ async function hydrate(supabase: SupabaseClient, userId: string, rows: Row[]): P
 }
 
 /** One page of posts. Modes use the server-side ranking; author, single-post and search views are plain lists. */
-export async function fetchPosts(supabase: SupabaseClient, userId: string, { page = 0, mode = "latest", tag, search, authorId, postId }: Options): Promise<{ posts: FeedPost[]; next: number | null }> {
+export async function fetchPosts(supabase: SupabaseClient, userId: string, { page = 0, mode = "latest", tag, search, authorId, postId, groupId }: Options): Promise<{ posts: FeedPost[]; next: number | null }> {
   const from = page * FEED_PAGE;
   let rows: Row[] = [];
 
-  if (authorId || postId || (search && search.trim().length >= 2)) {
+  if (groupId || authorId || postId || (search && search.trim().length >= 2)) {
     let q = supabase.from("posts").select(POST_COLS).eq("status", "published").order("created_at", { ascending: false }).range(from, from + FEED_PAGE - 1);
+    if (groupId) q = q.eq("group_id", groupId);
+    else if (!postId) q = q.is("group_id", null);
     if (authorId) q = q.eq("author_id", authorId);
     if (postId) q = q.eq("id", postId);
     if (search && search.trim().length >= 2) q = q.ilike("body", `%${search.trim().replace(/[%_\\]/g, "")}%`);

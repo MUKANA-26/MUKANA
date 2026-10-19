@@ -29,6 +29,7 @@ export function FeedList({
   avatarUrl,
   authorId,
   postId,
+  groupId,
   tag,
   showComposer = false,
   showTabs = false,
@@ -40,6 +41,7 @@ export function FeedList({
   avatarUrl: string | null;
   authorId?: string;
   postId?: string;
+  groupId?: string;
   tag?: string;
   showComposer?: boolean;
   showTabs?: boolean;
@@ -58,9 +60,9 @@ export function FeedList({
 
   const searching = search.length >= 2;
   const query = useInfiniteQuery({
-    queryKey: ["feed", "posts", { authorId: authorId ?? null, postId: postId ?? null, mode, tag: tag ?? null, search: searching ? search : null }],
+    queryKey: ["feed", "posts", { authorId: authorId ?? null, postId: postId ?? null, groupId: groupId ?? null, mode, tag: tag ?? null, search: searching ? search : null }],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => fetchPosts(supabase, userId, { page: pageParam, mode, tag, search: searching ? search : null, authorId, postId }),
+    queryFn: ({ pageParam }) => fetchPosts(supabase, userId, { page: pageParam, mode, tag, search: searching ? search : null, authorId, postId, groupId }),
     getNextPageParam: (last) => last.next,
     staleTime: 20_000,
   });
@@ -88,7 +90,7 @@ export function FeedList({
 
   return (
     <div className="space-y-4">
-      {showComposer && !tag ? <Composer userId={userId} name={name} avatarUrl={avatarUrl} /> : null}
+      {showComposer && !tag ? <Composer userId={userId} name={name} avatarUrl={avatarUrl} groupId={groupId} /> : null}
 
       {showTabs ? (
         <div className="space-y-3">

@@ -17,6 +17,8 @@ export interface PresenceValues {
   searchable: boolean;
   profile_visibility: "members" | "connections";
   messages_from: "connections" | "anyone";
+  mentor: boolean;
+  mentor_topics: string;
 }
 
 /** How the member appears to others: headline, cover photo, open-to-work, and privacy choices. */
@@ -95,6 +97,21 @@ export function PresencePanel({ userId, role, initial, coverUrl, hasCover }: { u
             </span>
           </label>
         ) : null}
+
+        <div className="space-y-3 rounded-xl border border-border p-3">
+          <label className="flex min-h-10 cursor-pointer items-start gap-3">
+            <input type="checkbox" className="mt-1 size-4" checked={v.mentor} onChange={(e) => setV({ ...v, mentor: e.target.checked })} />
+            <span>
+              <span className="block text-sm font-semibold">I can mentor others</span>
+              <span className="block text-sm text-muted-foreground">Students and graduates can ask you for advice. You choose who to accept.</span>
+            </span>
+          </label>
+          {v.mentor ? (
+            <Field label="Topics you can help with" htmlFor="pp-topics" hint="Separate with commas, e.g. Careers, Engineering, Interviews">
+              <Input id="pp-topics" maxLength={300} value={v.mentor_topics} onChange={(e) => setV({ ...v, mentor_topics: e.target.value })} />
+            </Field>
+          ) : null}
+        </div>
 
         <label className="flex min-h-12 cursor-pointer items-start gap-3 rounded-xl border border-border p-3">
           <input type="checkbox" className="mt-1 size-4" checked={v.searchable} onChange={(e) => setV({ ...v, searchable: e.target.checked })} />

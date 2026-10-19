@@ -34,7 +34,8 @@ export interface PersonProfile {
   candidate_type: "attachee" | "graduate_trainee" | null;
   skills: { name: string; endorsements: number; endorsed_by_me: boolean }[];
   recommendations: { id: string; author_id: string; author_name: string; author_headline: string | null; body: string; created_at: string }[];
-  badges: { name: string; score?: number }[];
+  projects: { title?: string; description?: string; url?: string }[];
+  badges: { name: string; title?: string; score?: number }[];
   connections: number;
   followers: number;
   relation: {
@@ -92,6 +93,11 @@ function Controls({ person, me }: { person: PersonProfile; me: string }) {
           <UserPlus aria-hidden /> Connect
         </Button>
       )}
+      {person.mentor && !r.self ? (
+        <Button asChild variant="outline" size="sm">
+          <Link href="/mentors">Ask to mentor me</Link>
+        </Button>
+      ) : null}
       {r.can_message ? (
         <Button variant={r.connected ? "cta" : "outline"} size="sm" loading={actions.busy === `message:${person.id}`} onClick={() => void actions.message(person.id)}>
           <MessageCircle aria-hidden /> Message
@@ -313,7 +319,26 @@ export function ProfileView({ person, me, avatarUrl, coverUrl, views }: { person
           <ul className="mt-3 flex flex-wrap gap-2">
             {person.badges.map((b) => (
               <li key={b.name} className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1 text-sm font-medium text-success-soft-foreground">
-                <Award className="size-4" aria-hidden /> {b.name}
+                <Award className="size-4" aria-hidden /> {b.title ?? b.name}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {person.projects.length > 0 ? (
+        <section className="rounded-xl border border-border bg-surface p-4 shadow-sm" aria-labelledby="proj-h">
+          <h2 id="proj-h" className="font-heading text-lg font-semibold">Projects</h2>
+          <ul className="mt-3 space-y-3">
+            {person.projects.map((p, i) => (
+              <li key={i} className="rounded-lg bg-surface-muted p-3">
+                <p className="text-sm font-semibold">{p.title || "Project"}</p>
+                {p.description ? <p className="mt-1 whitespace-pre-line text-sm">{p.description}</p> : null}
+                {p.url && /^https?:\/\//i.test(p.url) ? (
+                  <a href={p.url} target="_blank" rel="noopener noreferrer nofollow" className="mt-1 inline-block break-all text-sm text-link underline">
+                    {p.url}
+                  </a>
+                ) : null}
               </li>
             ))}
           </ul>

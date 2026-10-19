@@ -19,7 +19,7 @@ interface Picked {
 }
 
 /** "Start a post": text with @tagging, up to 4 photos or 1 video. */
-export function Composer({ userId, name, avatarUrl }: { userId: string; name: string; avatarUrl: string | null }) {
+export function Composer({ userId, name, avatarUrl, groupId }: { userId: string; name: string; avatarUrl: string | null; groupId?: string }) {
   const queryClient = useQueryClient();
   const [text, setText] = React.useState("");
   const [mentions, setMentions] = React.useState<Record<string, string>>({});
@@ -65,7 +65,7 @@ export function Composer({ userId, name, avatarUrl }: { userId: string; name: st
     try {
       const uploaded: { kind: "image" | "video"; path: string }[] = [];
       for (const f of files) uploaded.push({ kind: f.kind, path: await uploadFile("post_media", f.file, userId) });
-      const r = await createPostAction(withTokens(text.trim(), mentions), uploaded);
+      const r = await createPostAction(withTokens(text.trim(), mentions), uploaded, groupId);
       if (!r.ok) throw new UploadError(r.error ?? "Could not post");
       files.forEach((f) => URL.revokeObjectURL(f.preview));
       setText("");

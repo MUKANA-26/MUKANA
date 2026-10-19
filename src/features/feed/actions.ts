@@ -30,7 +30,7 @@ async function verifyMedia(userId: string, item: { kind: "image" | "video"; path
   return null;
 }
 
-export async function createPostAction(body: string, media: { kind: "image" | "video"; path: string }[]): Promise<ActionResult & { postId?: string }> {
+export async function createPostAction(body: string, media: { kind: "image" | "video"; path: string }[], groupId?: string): Promise<ActionResult & { postId?: string }> {
   const session = await requireUser();
   const parsed = mediaSchema.safeParse(media);
   if (!parsed.success) return { ok: false, error: "Too many files" };
@@ -46,7 +46,8 @@ export async function createPostAction(body: string, media: { kind: "image" | "v
       return { ok: false, error: problem };
     }
   }
-  const { data, error } = await supabase.rpc("create_post", { p_body: body.slice(0, 3000), p_media: parsed.data });
+  if (groupId && !uuid.safeParse(groupId).success) return { ok: false, error: "Invalid group" };
+  const { data, error } = await supabase.rpc("create_post", { p_body: body.slice(0, 3000), p_media: parsed.data, p_group_id: groupId ?? null });
   if (error) {
     await cleanup();
     return { ok: false, error: dbMessage(error.message) };
