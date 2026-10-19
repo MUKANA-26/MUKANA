@@ -75,6 +75,11 @@ export async function finalizeUploadAction(kind: FileKind, path: string): Promis
     const { error } = await supabase.from("profiles").update({ avatar_path: path }).eq("id", session.id);
     if (error) return reject("Could not save your photo");
     await remove(prev?.avatar_path);
+  } else if (kind === "cover") {
+    const { data: prev } = await supabase.from("profiles").select("cover_path").eq("id", session.id).maybeSingle();
+    const { error } = await supabase.from("profiles").update({ cover_path: path }).eq("id", session.id);
+    if (error) return reject("Could not save your cover photo");
+    await remove(prev?.cover_path);
   } else if (kind === "company_logo" && companyId) {
     const { data: prev } = await supabase.from("companies").select("logo_path").eq("id", companyId).maybeSingle();
     const { error } = await supabase.from("companies").update({ logo_path: path }).eq("id", companyId);
@@ -86,13 +91,14 @@ export async function finalizeUploadAction(kind: FileKind, path: string): Promis
 }
 
 /** Removes a candidate document (CV, placement letter or photo) and clears the reference. */
-export async function removeFileAction(kind: "cv" | "placement_letter" | "avatar"): Promise<FileActionResult> {
+export async function removeFileAction(kind: "cv" | "placement_letter" | "avatar" | "cover"): Promise<FileActionResult> {
   const session = await requireUser();
   const supabase = await createClient();
   const rule = FILE_RULES[kind];
-  const column = kind === "cv" ? "cv_path" : kind === "placement_letter" ? "placement_letter_path" : "avatar_path";
-  const table = kind === "avatar" ? "profiles" : "candidate_profiles";
-  const key = kind === "avatar" ? "id" : "user_id";
+  const column = kind === "cv" ? "cv_path" : kind === "placement_letter" ? "placement_letter_path" : kind === "cover" ? "cover_path" : "avatar_path";
+  const onProfile = kind === "avatar" || kind === "cover";
+  const table = onProfile ? "profiles" : "candidate_profiles";
+  const key = onProfile ? "id" : "user_id";
   const { data } = await supabase.from(table).select(column).eq(key, session.id).maybeSingle();
   const current = (data as Record<string, string | null> | null)?.[column];
   const { error } = await supabase.from(table).update({ [column]: null }).eq(key, session.id);

@@ -45,6 +45,9 @@ const p3 = (await q(`select create_post('Demo video', '[{"kind":"video","path":"
 ok("post with one video", (await q(`select kind from post_media where post_id='${p3}'`))[0].kind === "video");
 
 console.log("\n== visibility");
+// Since 0013 searchable members are discoverable; this member opts out to model a non-participant.
+await as(null, "postgres");
+await db.exec(`update profiles set searchable=false where id='${cara}'`);
 await as(null, "anon");
 ok("visitors cannot read posts", (await fails(`select * from posts`)) !== null || (await q(`select * from posts`)).length === 0);
 await as(ben);

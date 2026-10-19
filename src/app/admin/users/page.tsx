@@ -9,7 +9,7 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 import { ActionButton, ReasonButton } from "@/features/admin/reason-dialog";
-import { makeAdminAction, setUserStatusAction } from "@/features/admin/actions";
+import { makeAdminAction, setUserStatusAction, setVerifiedAction } from "@/features/admin/actions";
 import { DeleteUserButton } from "@/features/admin/delete-user-button";
 
 export const metadata: Metadata = { title: "Users" };
@@ -38,6 +38,8 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
     p_offset: (page - 1) * PAGE,
   });
   const users = (data ?? []) as UserRow[];
+  const { data: badgeRows } = users.length ? await supabase.from("profiles").select("id, verified_badge").in("id", users.map((u) => u.id)) : { data: [] };
+  const verified = new Set(((badgeRows ?? []) as { id: string; verified_badge: boolean | null }[]).filter((b) => b.verified_badge).map((b) => b.id));
   const total = Number(users[0]?.total ?? 0);
   const pages = Math.max(1, Math.ceil(total / PAGE));
   const qs = (p: number) => {
@@ -80,6 +82,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                   {u.full_name || "(no name)"}
                   <Badge variant={u.role === "admin" ? "cta" : u.role === "employer" ? "info" : "neutral"}>{u.role}</Badge>
                   {u.status === "suspended" ? <Badge variant="danger">Suspended</Badge> : null}
+                  {verified.has(u.id) ? <Badge variant="success">Verified</Badge> : null}
                 </p>
                 <p className="truncate text-sm text-muted-foreground">
                   {u.email}
@@ -93,6 +96,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                   ) : (
                     <ReasonButton label="Suspend" title={`Suspend ${u.full_name || u.email}?`} description="They can no longer sign in or use Mukana until restored." confirmLabel="Suspend user" variant="outline" required run={setUserStatusAction.bind(null, u.id, "suspended")} />
                   )}
+                  <ActionButton label={verified.has(u.id) ? "Remove badge" : "Verify"} run={setVerifiedAction.bind(null, u.id, !verified.has(u.id))} />
                   <DeleteUserButton userId={u.id} name={u.full_name} email={u.email} role={u.role as "candidate" | "employer"} />
                   <ReasonButton label="Make admin" title="Make this user an administrator?" description="Administrators can moderate everything on the platform. This is logged." confirmLabel="Make admin" icon={<ShieldCheck aria-hidden />} run={makeAdminAction.bind(null, u.id)} />
                 </div>

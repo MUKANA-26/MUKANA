@@ -7,6 +7,8 @@ import {
   ClipboardList,
   FileText,
   Flag,
+  MessageCircle,
+  Network,
   Newspaper,
   LayoutDashboard,
   ScrollText,
@@ -34,6 +36,8 @@ export const NAV: Record<Role, NavItem[]> = {
   candidate: [
     { href: "/candidate", label: "Home", icon: LayoutDashboard, mobile: true, exact: true },
     { href: "/feed", label: "Feed", icon: Newspaper, mobile: true },
+    { href: "/network", label: "Network", icon: Network },
+    { href: "/messages", label: "Messages", icon: MessageCircle },
     { href: "/candidate/opportunities", label: "Browse", icon: Search, mobile: true },
     { href: "/candidate/applications", label: "Applications", icon: ClipboardList, mobile: true },
     { href: "/candidate/saved", label: "Saved", icon: BookmarkCheck },
@@ -46,6 +50,8 @@ export const NAV: Record<Role, NavItem[]> = {
   employer: [
     { href: "/employer", label: "Home", icon: LayoutDashboard, mobile: true, exact: true },
     { href: "/feed", label: "Feed", icon: Newspaper, mobile: true },
+    { href: "/network", label: "Network", icon: Network },
+    { href: "/messages", label: "Messages", icon: MessageCircle },
     { href: "/employer/opportunities", label: "Opportunities", icon: ClipboardList, mobile: true },
     { href: "/employer/applicants", label: "Applicants", icon: Users, mobile: true },
     { href: "/employer/interviews", label: "Interviews", icon: CalendarClock },

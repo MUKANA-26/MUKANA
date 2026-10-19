@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CircleHelp, LogOut, Settings, UserRound, Building2 } from "lucide-react";
+import { CircleHelp, Eye, LogOut, Settings, UserRound, Building2 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { signOutAction } from "@/features/auth/actions";
@@ -13,7 +13,7 @@ import type { Role } from "@/lib/roles";
 const ROLE_LABEL: Record<Role, string> = { candidate: "Candidate", employer: "Employer", admin: "Admin" };
 
 /** LinkedIn-style "Me" menu on the corner photo: profile, settings, help and sign out. */
-export function AccountMenu({ role, name, email, avatarUrl }: { role: Role; name: string; email: string; avatarUrl: string | null }) {
+export function AccountMenu({ role, userId, name, email, avatarUrl }: { role: Role; userId: string; name: string; email: string; avatarUrl: string | null }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -34,12 +34,14 @@ export function AccountMenu({ role, name, email, avatarUrl }: { role: Role; name
   const items =
     role === "candidate"
       ? [
-          { href: "/candidate/profile", label: "View my profile", icon: UserRound },
+          { href: "/candidate/profile", label: "My profile & CV", icon: UserRound },
+          { href: `/people/${userId}`, label: "How others see me", icon: Eye },
           { href: "/candidate/settings", label: "Settings & privacy", icon: Settings },
         ]
       : role === "employer"
         ? [
             { href: "/employer/company", label: "Company profile", icon: Building2 },
+            { href: `/people/${userId}`, label: "How others see me", icon: Eye },
             { href: "/employer/settings", label: "Settings & privacy", icon: Settings },
           ]
         : [{ href: "/admin/settings", label: "Account settings", icon: Settings }];

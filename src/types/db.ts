@@ -31,6 +31,8 @@ export type NotificationType =
   | "deadline_reminder"
   | "verification"
   | "feed"
+  | "network"
+  | "message"
   | "report"
   | "system";
 

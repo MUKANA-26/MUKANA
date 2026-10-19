@@ -31,6 +31,7 @@ export async function validateFile(kind: FileKind, file: File) {
 /** How much each kind of image is shrunk before upload. */
 const SHRINK: Partial<Record<FileKind, ShrinkOptions>> = {
   avatar: { maxSide: 1024, quality: 0.88 },
+  cover: { maxSide: 2000, quality: 0.85 },
   company_logo: { maxSide: 1024, quality: 0.9 },
   post_media: { maxSide: 2560, quality: 0.85 },
   verification_doc: { maxSide: 3200, quality: 0.9, forceJpeg: true },

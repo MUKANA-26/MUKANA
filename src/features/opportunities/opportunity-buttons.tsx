@@ -70,7 +70,7 @@ const REASONS = [
   { value: "other", label: "Something else" },
 ] as const;
 
-export function ReportButton({ targetType, targetId, label = "Report", compact = false }: { targetType: "opportunity" | "company" | "post"; targetId: string; label?: string; compact?: boolean }) {
+export function ReportButton({ targetType, targetId, label = "Report", compact = false }: { targetType: "opportunity" | "company" | "post" | "user"; targetId: string; label?: string; compact?: boolean }) {
   const [open, setOpen] = React.useState(false);
   const [reason, setReason] = React.useState<(typeof REASONS)[number]["value"]>("misleading");
   const [details, setDetails] = React.useState("");
@@ -80,7 +80,7 @@ export function ReportButton({ targetType, targetId, label = "Report", compact =
       <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(true)} className="text-muted-foreground">
         <Flag aria-hidden /> {label}
       </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title={`Report this ${targetType}`} description="Tell us what's wrong. A Mukana moderator will review it.">
+      <Dialog open={open} onClose={() => setOpen(false)} title={`Report this ${targetType === "user" ? "member" : targetType}`} description="Tell us what's wrong. A Mukana moderator will review it.">
         <div className="space-y-4">
           <Field label="Reason" htmlFor="report-reason">
             <Select id="report-reason" value={reason} onChange={(e) => setReason(e.target.value as typeof reason)}>

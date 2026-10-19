@@ -8,7 +8,7 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/utils";
 import { ActionButton, ReasonButton } from "@/features/admin/reason-dialog";
-import { moderateOpportunityAction, moderatePostAction, resolveReportAction, setCompanySuspendedAction } from "@/features/admin/actions";
+import { moderateOpportunityAction, moderatePostAction, resolveReportAction, setCompanySuspendedAction, setUserStatusAction } from "@/features/admin/actions";
 
 export const metadata: Metadata = { title: "Reports" };
 
@@ -23,7 +23,7 @@ const REASON_LABEL: Record<string, string> = {
 
 interface Report {
   id: string;
-  target_type: "opportunity" | "company" | "post";
+  target_type: "opportunity" | "company" | "post" | "user";
   reason: string;
   details: string | null;
   status: "open" | "actioned" | "dismissed";
@@ -34,6 +34,7 @@ interface Report {
   companies: { id: string; name: string; suspended: boolean } | null;
   profiles: { full_name: string } | null;
   posts?: { id: string; body: string; status: string } | null;
+  reported?: { id: string; full_name: string; status: string } | null;
 }
 
 const BASE_SELECT =
@@ -43,7 +44,7 @@ export default async function ReportsPage() {
   await requireRole("admin");
   const supabase = await createClient();
   // Post reports need the community-feed migration; fall back gracefully if it is not applied yet.
-  const SELECT = `${BASE_SELECT}, posts(id, body, status)`;
+  const SELECT = `${BASE_SELECT}, posts(id, body, status), reported:profiles!reports_user_id_fkey(id, full_name, status)`;
   type Res = { data: unknown; error: unknown };
   let [openRes, doneRes]: Res[] = await Promise.all([
     supabase.from("reports").select(SELECT).eq("status", "open").order("created_at"),
@@ -74,7 +75,11 @@ export default async function ReportsPage() {
                   <CardHeader className="pb-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <CardTitle className="text-base">
-                        {r.target_type === "post" ? (
+                        {r.target_type === "user" ? (
+                          <Link href={`/people/${r.reported?.id ?? ""}`} className="hover:underline" target="_blank">
+                            Member: {r.reported?.full_name ?? "(removed)"}
+                          </Link>
+                        ) : r.target_type === "post" ? (
                           <Link href={`/feed/${r.posts?.id ?? ""}`} className="hover:underline" target="_blank">
                             Post: {(r.posts?.body ?? "(photo or video)").replace(/@\[([^\]]+)\]\([^)]+\)/g, "@$1").slice(0, 70) || "(photo or video)"}
                           </Link>
@@ -89,7 +94,7 @@ export default async function ReportsPage() {
                       <Badge variant="danger">{REASON_LABEL[r.reason] ?? r.reason}</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {r.target_type === "opportunity" ? `Opportunity by ${opp?.companies?.name ?? "—"}` : r.target_type === "post" ? "Feed post" : "Company"} · reported by {r.profiles?.full_name ?? "a user"} · {formatDateTime(r.created_at)}
+                      {r.target_type === "opportunity" ? `Opportunity by ${opp?.companies?.name ?? "—"}` : r.target_type === "post" ? "Feed post" : r.target_type === "user" ? "Member profile" : "Company"} · reported by {r.profiles?.full_name ?? "a user"} · {formatDateTime(r.created_at)}
                     </p>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -111,6 +116,13 @@ export default async function ReportsPage() {
                           <ReasonButton label="Restore post" title="Restore this post" confirmLabel="Restore" variant="success" run={(note) => moderatePostAction(r.posts!.id, "restore", note)} />
                         ) : (
                           <ReasonButton label="Remove post" title="Remove this post" description="It disappears for everyone and the author is told why." confirmLabel="Remove" variant="destructive" required run={(reason) => moderatePostAction(r.posts!.id, "remove", reason)} />
+                        )
+                      ) : null}
+                      {r.target_type === "user" && r.reported ? (
+                        r.reported.status === "suspended" ? (
+                          <ActionButton label="Restore member" run={setUserStatusAction.bind(null, r.reported.id, "active")} />
+                        ) : (
+                          <ReasonButton label="Suspend member" title="Suspend this member" description="They can no longer sign in until restored." confirmLabel="Suspend" variant="destructive" required run={setUserStatusAction.bind(null, r.reported.id, "suspended")} />
                         )
                       ) : null}
                       {r.target_type === "company" && company ? (
@@ -138,7 +150,7 @@ export default async function ReportsPage() {
             {done.map((r) => (
               <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
                 <div className="min-w-0">
-                  <p className="truncate font-semibold">{r.opportunities?.title ?? r.companies?.name ?? "Feed post"}</p>
+                  <p className="truncate font-semibold">{r.opportunities?.title ?? r.companies?.name ?? r.reported?.full_name ?? "Feed post"}</p>
                   <p className="text-xs text-muted-foreground">
                     {REASON_LABEL[r.reason]} · {formatDateTime(r.resolved_at)}
                     {r.resolution_note ? ` · ${r.resolution_note}` : ""}

@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { AccountMenu } from "@/components/layout/account-menu";
 import { NotificationBell } from "@/features/notifications/notification-bell";
+import { MessageBell } from "@/features/messages/message-bell";
 import { PushForeground } from "@/features/notifications/push-foreground";
 import { signOutAction } from "@/features/auth/actions";
 import { clearOfflineCache } from "@/lib/offline-cache";
@@ -104,9 +105,10 @@ export function AppShell({
             <Badge variant="info">{roleLabel[role]}</Badge>
           </div>
           <div className="flex items-center gap-1">
+            {role !== "admin" ? <MessageBell userId={userId} /> : null}
             <NotificationBell userId={userId} href={`${ROLE_HOME[role]}/notifications`} />
             <ThemeToggle />
-            <AccountMenu role={role} name={userName} email={userEmail} avatarUrl={avatarUrl} />
+            <AccountMenu role={role} userId={userId} name={userName} email={userEmail} avatarUrl={avatarUrl} />
           </div>
         </header>
 
