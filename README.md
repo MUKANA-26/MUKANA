@@ -118,7 +118,7 @@ Adding WhatsApp later: implement the `NotificationChannel` interface (see `Whats
 ## 9. Tests and checks
 
 ```bash
-npm run test:sql      # applies all migrations to an in-memory Postgres (PGlite) and runs 86 RLS/workflow checks + the seed
+npm run test:sql      # applies all migrations to an in-memory Postgres (PGlite) and runs about 350 RLS/workflow checks across seven suites (core workflow, feed, network and messaging, feed upgrades, jobs and employers, reach and learning, two-step verification) + the seed
 npm run typecheck
 ```
 
@@ -150,3 +150,33 @@ Members can post text, up to 4 photos or 1 video, tag people with `@`, like and 
 ## 13. Upload limits
 
 Photos (profile photos, company logos, post photos, ID/registration photos) can be up to **25MB**; the browser shrinks them (max 2560px for posts, 1024px for avatars/logos) before upload, so they end up well under 1MB. PDFs stay at 5MB and videos at 30MB. The bucket limits are in `0003`, `0011` and `0012_raise_image_limits.sql`; Supabase's project-wide upload limit must be at least 25MB (the free plan allows 50MB).
+
+
+## 14. Version 2 (network, jobs, learning, security)
+
+**Apply the database first, then deploy the app.** Open Supabase → SQL Editor, paste all of `supabase/RUN-ME-v2-update.sql` and run it once (it is migrations `0013`-`0017`; your data is kept). Deploying the app before the SQL makes the new screens report errors until the SQL has run.
+
+| Area | What you get | Where |
+| --- | --- | --- |
+| Network | Connections, follows, blocks, people search and suggestions, endorsements, recommendations, "who viewed me", verified and open-to-work badges, privacy choices | `/network`, `/people/[id]`, Settings → Your public profile, `0013` |
+| Messaging | 1-to-1 and group chats in real time, unread badge, employer ↔ applicant chat, mute by category | `/messages`, `0013` |
+| Feed | Edit and delete, #hashtags with trending and follow, bookmarks, reposts, search, For you / Latest / Following / Saved | `/feed`, `0014` |
+| Jobs | Internships and entry-level jobs next to attachments and graduate programmes, job alerts, weekly digest (Monday 09:00), "Near me" filter, deadline reminders | `/candidate/alerts`, `0015` |
+| Employers | Candidate search (only people who opted in), shortlist, invitations to apply, recommended candidates, hiring team with several recruiters | `/employer/talent`, `/employer/team`, `0015` |
+| Reach | Events, webinars and career fairs (exhibitors), interest groups, learning guides, skill quizzes and badges, mentorship, project portfolio on profiles | `/explore`, `/events`, `/groups`, `/learn`, `/mentors`, `0016` |
+| Admin | Platform analytics, learning-guide editor, verified badge, member reports | `/admin/analytics`, `/admin/resources` |
+| Security | Google sign-in, authenticator-app two-step verification (enforced in the database), CAPTCHA, languages, low-data mode | Settings, `0017` |
+
+### Optional switches (add to your environment, then redeploy)
+
+- **Google sign-in:** Supabase → Authentication → Providers → Google (create an OAuth client in Google Cloud Console; the redirect URL to give Google is shown on that Supabase page). Then set `NEXT_PUBLIC_GOOGLE_AUTH=true`. First-time Google users pick candidate or employer once at `/welcome`.
+- **CAPTCHA:** create a free Cloudflare Turnstile widget, set `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, and in Supabase → Authentication → Attack Protection enable CAPTCHA with provider Turnstile and your secret key.
+- **Two-step verification:** Supabase → Authentication → Sign In / Providers → Multi-Factor → enable TOTP. Members then turn it on in Settings. Once on, a password-only session is refused by the database until the code is entered (`aal_ok()`).
+- **Weekly digest:** deploy the new Edge Function `supabase functions deploy weekly-digest` (the schedule is created by `0015` when pg_cron is set up).
+- **Languages:** English, chiShona and isiNdebele for menus and main buttons (`src/lib/i18n.ts`). Please have native speakers review the wording, and extend the dictionary as more screens are translated.
+
+### Honest limits
+
+- Skill quizzes and learning guides ship with a small starter set; admins can add guides, quizzes are added with SQL for now.
+- Recruiters (hiring team) are existing employer accounts added by the owner's email; only the owner edits the company profile and verification.
+- Events do not send reminders yet; cancellations notify attendees.
