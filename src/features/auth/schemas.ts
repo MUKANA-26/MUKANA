@@ -10,9 +10,13 @@ export const passwordSchema = z
 
 export const emailSchema = z.string().trim().toLowerCase().email("Enter a valid email address").max(254);
 
+/** Cloudflare Turnstile token, present only when CAPTCHA is switched on for the site. */
+const captcha = z.string().max(4096).optional();
+
 export const signInSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, "Enter your password"),
+  captchaToken: captcha,
 });
 export type SignInValues = z.infer<typeof signInSchema>;
 
@@ -28,6 +32,7 @@ export const signUpSchema = z
     consent: z.boolean().refine((v) => v === true, {
       message: "You must accept the Privacy Policy and Terms to continue",
     }),
+    captchaToken: captcha,
   })
   .refine((v) => v.password === v.confirmPassword, {
     path: ["confirmPassword"],
@@ -39,7 +44,7 @@ export const signUpSchema = z
   });
 export type SignUpValues = z.infer<typeof signUpSchema>;
 
-export const forgotPasswordSchema = z.object({ email: emailSchema });
+export const forgotPasswordSchema = z.object({ email: emailSchema, captchaToken: captcha });
 export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 
 export const resetPasswordSchema = z

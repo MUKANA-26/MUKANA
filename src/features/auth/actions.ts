@@ -47,8 +47,16 @@ export async function signInAction(values: SignInValues, next?: string): Promise
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid details" };
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { captchaToken, ...credentials } = parsed.data;
+  const { data, error } = await supabase.auth.signInWithPassword({ ...credentials, options: captchaToken ? { captchaToken } : undefined });
   if (error || !data.user) return { ok: false, error: friendlyAuthError(error?.message ?? "") };
+
+  // Two-step verification: with a password-only session the database serves nothing, so continue at the code screen.
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+    const wanted = safeNext(next, "");
+    return { ok: true, redirectTo: wanted ? `/sign-in/verify?next=${encodeURIComponent(wanted)}` : "/sign-in/verify" };
+  }
 
   const { data: profile } = await supabase.from("profiles").select("role,status").eq("id", data.user.id).maybeSingle();
   if (!profile) {
@@ -78,6 +86,7 @@ export async function signUpAction(values: SignUpValues): Promise<ActionResult> 
     password: v.password,
     options: {
       emailRedirectTo: `${await siteUrl()}/auth/callback?next=/verified`,
+      captchaToken: v.captchaToken || undefined,
       data: {
         full_name: v.fullName,
         role: v.role,
@@ -119,6 +128,7 @@ export async function forgotPasswordAction(values: ForgotPasswordValues): Promis
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(parsed.data.email, {
     redirectTo: `${await siteUrl()}/auth/callback?next=/reset-password`,
+    captchaToken: parsed.data.captchaToken || undefined,
   });
   // Always report success so the form can't be used to discover which emails are registered.
   return { ok: true, message: "If an account exists for that email, a reset link is on its way." };

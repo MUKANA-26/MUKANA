@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { createClient } from "@/lib/supabase/client";
 import { cn, timeAgo } from "@/lib/utils";
+import { useLowData, useT } from "@/components/prefs-provider";
 import { ReasonButton } from "@/features/admin/reason-dialog";
 import { moderatePostAction } from "@/features/admin/actions";
 import { ReportButton } from "@/features/opportunities/opportunity-buttons";
@@ -45,10 +46,19 @@ export function PersonLine({ person, time }: { person: FeedPerson | null; time: 
 
 function MediaGrid({ media }: { media: FeedMedia[] }) {
   const [open, setOpen] = React.useState<string | null>(null);
+  const lowData = useLowData();
+  const [loaded, setLoaded] = React.useState(false);
   if (!media.length) return null;
+  if (lowData && !loaded) {
+    return (
+      <button type="button" onClick={() => setLoaded(true)} className="mt-3 flex h-24 w-full items-center justify-center rounded-lg border border-dashed border-border bg-surface-muted text-sm font-medium text-muted-foreground">
+        Low-data mode: tap to load {media.some((m) => m.kind === "video") ? "the video" : media.length === 1 ? "the photo" : `${media.length} photos`}
+      </button>
+    );
+  }
   const video = media.find((m) => m.kind === "video");
   if (video) {
-    return <video src={mediaUrl(video.path)} controls playsInline preload="metadata" className="mt-3 max-h-[70vh] w-full rounded-lg bg-black" />;
+    return <video src={mediaUrl(video.path)} controls playsInline preload={lowData ? "none" : "metadata"} className="mt-3 max-h-[70vh] w-full rounded-lg bg-black" />;
   }
   return (
     <>
@@ -88,6 +98,7 @@ export function PostCard({
   openComments?: boolean;
 }) {
   const queryClient = useQueryClient();
+  const t = useT();
   const supabase = React.useMemo(() => createClient(), []);
   const [showComments, setShowComments] = React.useState(openComments);
   const [menu, setMenu] = React.useState(false);
@@ -303,16 +314,16 @@ export function PostCard({
 
       <div className="mt-2 flex items-center gap-1 border-t border-border pt-1.5">
         <Button type="button" variant="ghost" size="sm" aria-pressed={post.likedByMe} onClick={() => like.mutate(!post.likedByMe)} className={cn(post.likedByMe && "text-link")}>
-          <ThumbsUp className={cn(post.likedByMe && "fill-current")} aria-hidden /> Like
+          <ThumbsUp className={cn(post.likedByMe && "fill-current")} aria-hidden /> {t("Like")}
         </Button>
         <Button type="button" variant="ghost" size="sm" onClick={() => setShowComments((s) => !s)} aria-expanded={showComments}>
-          <MessageCircle aria-hidden /> Comment
+          <MessageCircle aria-hidden /> {t("Comment")}
         </Button>
         <Button type="button" variant="ghost" size="sm" onClick={() => setReposting(true)} aria-label="Repost">
-          <Repeat2 aria-hidden /> <span className="hidden sm:inline">Repost</span>
+          <Repeat2 aria-hidden /> <span className="hidden sm:inline">{t("Repost")}</span>
         </Button>
         <Button type="button" variant="ghost" size="sm" onClick={() => void share()} aria-label="Share">
-          <Share2 aria-hidden /> <span className="hidden sm:inline">Share</span>
+          <Share2 aria-hidden /> <span className="hidden sm:inline">{t("Share")}</span>
         </Button>
         <Button type="button" variant="ghost" size="sm" aria-pressed={post.savedByMe} aria-label={post.savedByMe ? "Remove from bookmarks" : "Save post"} onClick={() => save.mutate(!post.savedByMe)} className={cn("ml-auto", post.savedByMe && "text-link")}>
           <Bookmark className={cn(post.savedByMe && "fill-current")} aria-hidden />

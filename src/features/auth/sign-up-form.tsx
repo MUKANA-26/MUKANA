@@ -12,6 +12,8 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { cn } from "@/lib/utils";
 import { useHydrated } from "@/lib/use-hydrated";
 import { signUpAction } from "./actions";
+import { GoogleButton } from "./google-button";
+import { Turnstile, captchaEnabled } from "./turnstile";
 import { signUpSchema, type SignUpValues } from "./schemas";
 
 function Segment<T extends string>({
@@ -54,6 +56,8 @@ export function SignUpForm({ defaultRole = "candidate" }: { defaultRole?: "candi
   const hydrated = useHydrated();
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
+  const [captcha, setCaptcha] = React.useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = React.useState(0);
   const {
     register,
     control,
@@ -78,7 +82,11 @@ export function SignUpForm({ defaultRole = "candidate" }: { defaultRole?: "candi
   const onSubmit = handleSubmit((values) => {
     setError(null);
     startTransition(async () => {
-      const result = await signUpAction(values);
+      const result = await signUpAction({ ...values, captchaToken: captcha ?? undefined });
+      if (!result.ok) {
+        setCaptcha(null);
+        setCaptchaKey((k) => k + 1);
+      }
       if (!result.ok) return setError(result.error ?? "Could not create your account");
       router.replace(result.redirectTo ?? "/");
       router.refresh();
@@ -172,7 +180,8 @@ export function SignUpForm({ defaultRole = "candidate" }: { defaultRole?: "candi
           {error}
         </p>
       ) : null}
-      <Button type="submit" variant="cta" size="lg" className="w-full" loading={pending} disabled={!hydrated}>
+      {captchaEnabled ? <Turnstile key={captchaKey} onToken={setCaptcha} /> : null}
+      <Button type="submit" variant="cta" size="lg" className="w-full" loading={pending} disabled={!hydrated || (captchaEnabled && !captcha)}>
         Create account
       </Button>
     </form>

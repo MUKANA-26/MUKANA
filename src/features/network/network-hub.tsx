@@ -8,6 +8,7 @@ import { EmptyState, SkeletonList } from "@/components/ui/misc";
 import { useAvatarUrls } from "@/lib/avatars-client";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/prefs-provider";
 import { PersonRow, type PersonRowData } from "./person-row";
 import { useNetworkActions } from "./use-network-actions";
 
@@ -196,14 +197,15 @@ function Sent() {
 
 /** My network: discover people, answer invitations, see connections. */
 export function NetworkHub() {
+  const t = useT();
   const [tab, setTab] = React.useState<Tab>("discover");
   const invites = useConnections("received");
   const count = invites.data?.length ?? 0;
   const tabs: { id: Tab; label: string }[] = [
-    { id: "discover", label: "Discover" },
-    { id: "invitations", label: count ? `Invitations (${count})` : "Invitations" },
-    { id: "connections", label: "Connections" },
-    { id: "sent", label: "Sent" },
+    { id: "discover", label: t("Discover") },
+    { id: "invitations", label: count ? `${t("Invitations")} (${count})` : t("Invitations") },
+    { id: "connections", label: t("Connections") },
+    { id: "sent", label: t("Sent") },
   ];
   return (
     <div className="space-y-4">

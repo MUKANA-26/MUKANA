@@ -6,6 +6,8 @@ import { InstallButton } from "@/components/pwa/pwa-provider";
 import { NotificationSettings } from "@/features/notifications/notification-settings";
 import { AccountSection } from "@/features/settings/account-section";
 import { PresenceSection } from "@/features/network/presence-section";
+import { PreferencesPanel } from "@/features/settings/preferences-panel";
+import { TwoFactorPanel } from "@/features/settings/two-factor-panel";
 import { PrivacyPanel } from "@/features/settings/privacy-panel";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -18,6 +20,8 @@ export default async function CandidateSettingsPage() {
       <div className="space-y-5">
         <AccountSection session={session} />
         <PresenceSection session={session} />
+        <PreferencesPanel />
+        <TwoFactorPanel />
         <NotificationSettings userId={session.id} />
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface p-4">
           <p className="flex-1 text-sm">Add Mukana to your phone or computer for a faster, app-like experience.</p>

@@ -20,6 +20,8 @@ create schema extensions;
 create function extensions.crypt(text, text) returns text language sql as $$ select md5($1 || $2) $$; -- stand-in: PGlite has no bcrypt; real Postgres uses pgcrypto
 create function extensions.gen_salt(text) returns text language sql as $$ select 'salt'::text $$;
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+create table auth.mfa_factors (id uuid primary key default gen_random_uuid(), user_id uuid references auth.users(id) on delete cascade, status text, factor_type text default 'totp');
+create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true), '')::jsonb, '{}'::jsonb) $$;
 create function auth.role() returns text language sql stable as $$ select nullif(current_setting('request.jwt.claim.role', true), '') $$;
 create schema storage;
 create table storage.buckets (id text primary key, name text, public boolean default false, file_size_limit bigint, allowed_mime_types text[]);

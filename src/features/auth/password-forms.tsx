@@ -10,6 +10,7 @@ import { Field, Input } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useHydrated } from "@/lib/use-hydrated";
 import { forgotPasswordAction, resendVerificationAction, resetPasswordAction } from "./actions";
+import { Turnstile, captchaEnabled } from "./turnstile";
 import {
   forgotPasswordSchema,
   resetPasswordSchema,
@@ -21,6 +22,8 @@ export function ForgotPasswordForm() {
   const hydrated = useHydrated();
   const [done, setDone] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
+  const [captcha, setCaptcha] = React.useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = React.useState(0);
   const {
     register,
     handleSubmit,
@@ -41,16 +44,21 @@ export function ForgotPasswordForm() {
       className="space-y-4"
       onSubmit={handleSubmit((values) =>
         startTransition(async () => {
-          const r = await forgotPasswordAction(values);
+          const r = await forgotPasswordAction({ ...values, captchaToken: captcha ?? undefined });
           if (r.ok) setDone(r.message ?? "Check your email.");
-          else toast.error(r.error ?? "Something went wrong");
+          else {
+            setCaptcha(null);
+            setCaptchaKey((k) => k + 1);
+            toast.error(r.error ?? "Something went wrong");
+          }
         }),
       )}
     >
       <Field label="Email" htmlFor="email" error={errors.email?.message} required>
         <Input id="email" type="email" autoComplete="email" inputMode="email" {...register("email")} />
       </Field>
-      <Button type="submit" variant="cta" size="lg" className="w-full" loading={pending} disabled={!hydrated}>
+      {captchaEnabled ? <Turnstile key={captchaKey} onToken={setCaptcha} /> : null}
+      <Button type="submit" variant="cta" size="lg" className="w-full" loading={pending} disabled={!hydrated || (captchaEnabled && !captcha)}>
         Send reset link
       </Button>
     </form>

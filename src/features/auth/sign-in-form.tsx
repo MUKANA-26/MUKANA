@@ -10,6 +10,8 @@ import { Field, Input } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useHydrated } from "@/lib/use-hydrated";
 import { signInAction } from "./actions";
+import { GoogleButton } from "./google-button";
+import { Turnstile, captchaEnabled } from "./turnstile";
 import { signInSchema, type SignInValues } from "./schemas";
 
 export function SignInForm({ next }: { next?: string }) {
@@ -17,6 +19,8 @@ export function SignInForm({ next }: { next?: string }) {
   const hydrated = useHydrated();
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
+  const [captcha, setCaptcha] = React.useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = React.useState(0);
   const {
     register,
     handleSubmit,
@@ -26,14 +30,20 @@ export function SignInForm({ next }: { next?: string }) {
   const onSubmit = handleSubmit((values) => {
     setError(null);
     startTransition(async () => {
-      const result = await signInAction(values, next);
-      if (!result.ok) return setError(result.error ?? "Could not sign in");
+      const result = await signInAction({ ...values, captchaToken: captcha ?? undefined }, next);
+      if (!result.ok) {
+        setCaptcha(null);
+        setCaptchaKey((k) => k + 1);
+        return setError(result.error ?? "Could not sign in");
+      }
       router.replace(result.redirectTo ?? "/");
       router.refresh();
     });
   });
 
   return (
+    <div className="space-y-4">
+    <GoogleButton next={next} />
     <form method="post" onSubmit={onSubmit} noValidate className="space-y-4">
       <Field label="Email" htmlFor="email" error={errors.email?.message} required>
         <Input id="email" type="email" autoComplete="email" inputMode="email" aria-invalid={!!errors.email} {...register("email")} />
@@ -51,9 +61,11 @@ export function SignInForm({ next }: { next?: string }) {
           {error}
         </p>
       ) : null}
-      <Button type="submit" variant="cta" size="lg" className="w-full" loading={pending} disabled={!hydrated}>
+      {captchaEnabled ? <Turnstile key={captchaKey} onToken={setCaptcha} /> : null}
+      <Button type="submit" variant="cta" size="lg" className="w-full" loading={pending} disabled={!hydrated || (captchaEnabled && !captcha)}>
         Sign in
       </Button>
     </form>
+    </div>
   );
 }

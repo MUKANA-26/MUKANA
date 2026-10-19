@@ -8,6 +8,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { UploadError, uploadFile, validateFile } from "@/features/files/upload";
 import { createPostAction } from "./actions";
+import { useT } from "@/components/prefs-provider";
 import { MentionTextarea } from "./mention-textarea";
 import { withTokens } from "./mentions";
 
@@ -21,6 +22,7 @@ interface Picked {
 /** "Start a post": text with @tagging, up to 4 photos or 1 video. */
 export function Composer({ userId, name, avatarUrl, groupId }: { userId: string; name: string; avatarUrl: string | null; groupId?: string }) {
   const queryClient = useQueryClient();
+  const t = useT();
   const [text, setText] = React.useState("");
   const [mentions, setMentions] = React.useState<Record<string, string>>({});
   const [files, setFiles] = React.useState<Picked[]>([]);
@@ -123,16 +125,16 @@ export function Composer({ userId, name, avatarUrl, groupId }: { userId: string;
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-1">
               <Button type="button" variant="ghost" size="sm" onClick={() => imageInput.current?.click()} disabled={posting}>
-                <ImagePlus className="text-success" aria-hidden /> Photo
+                <ImagePlus className="text-success" aria-hidden /> {t("Photo")}
               </Button>
               <Button type="button" variant="ghost" size="sm" onClick={() => videoInput.current?.click()} disabled={posting}>
-                <Video className="text-cta" aria-hidden /> Video
+                <Video className="text-cta" aria-hidden /> {t("Video")}
               </Button>
               <input ref={imageInput} type="file" multiple className="sr-only" tabIndex={-1} accept=".jpg,.jpeg,.png,.webp" onChange={(e) => { void addFiles(e.target.files, "image"); e.target.value = ""; }} />
               <input ref={videoInput} type="file" className="sr-only" tabIndex={-1} accept=".mp4,.webm,.mov" onChange={(e) => { void addFiles(e.target.files, "video"); e.target.value = ""; }} />
             </div>
             <Button type="button" variant="cta" loading={posting} disabled={!canPost} onClick={() => void submit()}>
-              Post
+              {t("Post")}
             </Button>
           </div>
         </div>

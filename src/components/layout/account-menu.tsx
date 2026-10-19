@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { signOutAction } from "@/features/auth/actions";
 import { clearOfflineCache } from "@/lib/offline-cache";
 import type { Role } from "@/lib/roles";
+import { useT } from "@/components/prefs-provider";
 
 const ROLE_LABEL: Record<Role, string> = { candidate: "Candidate", employer: "Employer", admin: "Admin" };
 
@@ -17,6 +18,7 @@ export function AccountMenu({ role, userId, name, email, avatarUrl }: { role: Ro
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const t = useT();
 
   React.useEffect(() => setOpen(false), [pathname]);
   React.useEffect(() => {
@@ -73,15 +75,15 @@ export function AccountMenu({ role, userId, name, email, avatarUrl }: { role: Ro
           <div className="p-1.5">
             {items.map((i) => (
               <Link key={i.href} href={i.href} role="menuitem" className="flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-surface-muted">
-                <i.icon className="size-4" aria-hidden /> {i.label}
+                <i.icon className="size-4" aria-hidden /> {t(i.label)}
               </Link>
             ))}
             <Link href="/help" role="menuitem" className="flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-surface-muted">
-              <CircleHelp className="size-4" aria-hidden /> Help
+              <CircleHelp className="size-4" aria-hidden /> {t("Help")}
             </Link>
             <form action={signOutAction} onSubmit={() => clearOfflineCache()}>
               <button type="submit" role="menuitem" className="flex h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-surface-muted">
-                <LogOut className="size-4" aria-hidden /> Sign out
+                <LogOut className="size-4" aria-hidden /> {t("Sign out")}
               </button>
             </form>
           </div>

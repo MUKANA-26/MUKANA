@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState, SkeletonList } from "@/components/ui/misc";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/prefs-provider";
 import { Composer } from "./composer";
 import { PostCard } from "./post-card";
 import { fetchPosts, fetchTrending, type FeedMode } from "./queries";
@@ -49,6 +50,7 @@ export function FeedList({
 }) {
   const supabase = React.useMemo(() => createClient(), []);
   const router = useRouter();
+  const t = useT();
   const [mode, setMode] = React.useState<FeedMode>("for_you");
   const [term, setTerm] = React.useState("");
   const [search, setSearch] = React.useState("");
@@ -107,8 +109,8 @@ export function FeedList({
               type="search"
               value={term}
               onChange={(e) => setTerm(e.target.value)}
-              placeholder="Search posts"
-              aria-label="Search posts"
+              placeholder={t("Search posts")}
+              aria-label={t("Search posts")}
               className="h-11 w-full rounded-xl border border-input bg-surface pl-9 pr-9 text-sm"
             />
             {term ? (
@@ -144,7 +146,7 @@ export function FeedList({
                   onClick={() => setMode(m.id)}
                   className={cn("h-9 flex-1 whitespace-nowrap rounded-lg px-3 text-sm font-medium", mode === m.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-surface-muted")}
                 >
-                  {m.label}
+                  {t(m.label)}
                 </button>
               ))}
             </div>
@@ -188,7 +190,7 @@ export function FeedList({
           {!postId ? (
             <div className="flex justify-end">
               <Button variant="ghost" size="sm" onClick={() => void query.refetch()} loading={query.isRefetching}>
-                <RefreshCw aria-hidden /> Refresh
+                <RefreshCw aria-hidden /> {t("Refresh")}
               </Button>
             </div>
           ) : null}
@@ -202,7 +204,7 @@ export function FeedList({
           {query.hasNextPage ? (
             <div className="flex justify-center">
               <Button variant="outline" loading={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>
-                Load more
+                {t("Load more")}
               </Button>
             </div>
           ) : null}

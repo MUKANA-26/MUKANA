@@ -19,6 +19,7 @@ import { clearOfflineCache } from "@/lib/offline-cache";
 import { NAV, type NavItem } from "@/lib/nav";
 import { ROLE_HOME, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/prefs-provider";
 
 function isActive(pathname: string, item: NavItem) {
   return item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -42,6 +43,7 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const t = useT();
   const [moreOpen, setMoreOpen] = React.useState(false);
   const items = NAV[role];
   const mobileItems = items.filter((i) => i.mobile).slice(0, 4);
@@ -71,7 +73,7 @@ export function AppShell({
                 )}
               >
                 <item.icon className="size-5" aria-hidden />
-                {item.label}
+                {t(item.label)}
               </Link>
             );
           })}
@@ -90,7 +92,7 @@ export function AppShell({
               type="submit"
               className="flex h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-foreground hover:bg-surface-muted"
             >
-              <LogOut className="size-5" aria-hidden /> Sign out
+              <LogOut className="size-5" aria-hidden /> {t("Sign out")}
             </button>
           </form>
         </div>
@@ -136,7 +138,7 @@ export function AppShell({
               )}
             >
               <item.icon className="size-5" aria-hidden />
-              {item.label}
+              {t(item.label)}
             </Link>
           );
         })}
@@ -149,7 +151,7 @@ export function AppShell({
           )}
         >
           <Ellipsis className="size-5" aria-hidden />
-          More
+          {t("More")}
         </button>
       </nav>
 
@@ -162,7 +164,7 @@ export function AppShell({
                 onClick={() => setMoreOpen(false)}
                 className="flex h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-surface-muted"
               >
-                <item.icon className="size-5" aria-hidden /> {item.label}
+                <item.icon className="size-5" aria-hidden /> {t(item.label)}
               </Link>
             </li>
           ))}
@@ -175,7 +177,7 @@ export function AppShell({
                 type="submit"
                 className="mt-1 flex h-12 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-surface-muted"
               >
-                <LogOut className="size-5" aria-hidden /> Sign out
+                <LogOut className="size-5" aria-hidden /> {t("Sign out")}
               </button>
             </form>
           </li>

@@ -3,6 +3,8 @@ import { Inter, Poppins } from "next/font/google";
 import { headers } from "next/headers";
 import Script from "next/script";
 import { Providers } from "@/components/providers";
+import { PrefsProvider } from "@/components/prefs-provider";
+import { getPrefs } from "@/lib/i18n-server";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -53,8 +55,9 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const nonce = (await headers()).get("x-nonce") ?? undefined;
+  const prefs = await getPrefs();
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${poppins.variable}`}>
+    <html lang={prefs.lang} suppressHydrationWarning className={`${inter.variable} ${poppins.variable}`}>
       <body>
         <a
           href="#main"
@@ -68,10 +71,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           strategy="beforeInteractive"
           nonce={nonce}
           dangerouslySetInnerHTML={{
-            __html: "try{if(location.pathname==='/'&&!sessionStorage.getItem('mukana:splash')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.setAttribute('data-splash','on')}}catch(e){}",
+            __html: "try{if(location.pathname==='/'&&!sessionStorage.getItem('mukana:splash')&&document.cookie.indexOf('mukana-lowdata=1')<0&&!(navigator.connection&&navigator.connection.saveData)&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.setAttribute('data-splash','on')}}catch(e){}",
           }}
         />
-        <Providers nonce={nonce}>{children}</Providers>
+        <PrefsProvider lang={prefs.lang} lowData={prefs.lowData}>
+          <Providers nonce={nonce}>{children}</Providers>
+        </PrefsProvider>
       </body>
     </html>
   );
