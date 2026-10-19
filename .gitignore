@@ -14,3 +14,4 @@ public/workbox-*.js
 _src
 .claude
 .next-*
+supabase/RUN-ME-reset-everything.sql

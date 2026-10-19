@@ -2,31 +2,29 @@
 - Local:         http://localhost:3000
 - Network:       http://192.168.100.49:3000
 - Environments: .env.local
-✓ Ready in 1671ms
-✓ Running next.config.ts took 2.9s
+✓ Ready in 12.6s
+✓ Running next.config.ts took 17.1s
+○ Compiling proxy ...
 
 ○ Compiling /sign-in ...
- GET /sign-in 200 in 14.8s (next.js: 13.2s, proxy.ts: 526ms, application-code: 1079ms)
- GET /sign-in 200 in 1834ms (next.js: 1145ms, proxy.ts: 19ms, application-code: 671ms)
- GET /manifest.webmanifest 200 in 403ms (next.js: 319ms, application-code: 84ms)
-✓ Finished filesystem cache database compaction in 10.2s
- POST /sign-in 200 in 2.0s (next.js: 24ms, proxy.ts: 37ms, application-code: 1960ms)
-  └─ ƒ signInAction({"email":"ui-big@seed.mukana.test","password":"Ui-Test-Pass-2026"}, undefined) in 1082ms src/features/auth/actions.ts
+ GET /sign-in 200 in 26.3s (next.js: 23.9s, proxy.ts: 1419ms, application-code: 915ms)
+ GET /sign-in 200 in 1073ms (next.js: 806ms, proxy.ts: 17ms, application-code: 249ms)
+ GET /manifest.webmanifest 200 in 337ms (next.js: 290ms, application-code: 47ms)
+ POST /sign-in 200 in 1673ms (next.js: 16ms, proxy.ts: 21ms, application-code: 1636ms)
+  └─ ƒ signInAction({"email":"ui-admin@seed.mukana.test","password":"Ui-Test-Pass-2026"}, undefined) in 1083ms src/features/auth/actions.ts
 [browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
- GET /candidate 200 in 6.2s (next.js: 2.1s, proxy.ts: 694ms, application-code: 3.4s)
- GET /candidate 200 in 3.2s (next.js: 26ms, proxy.ts: 33ms, application-code: 3.2s)
-[browser] Image with src "https://nfnkvhoxlzownuwvlyvb.supabase.co/storage/v1/object/public/company-logos/74c15885-91df-478e-a44c-39e7b6968c8d/company_logo-ad4be710-09ce-4e83-be4b-0baa375bb68a.jpg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
- GET /candidate/profile 200 in 3.8s (next.js: 2.3s, proxy.ts: 72ms, application-code: 1413ms)
- POST /candidate/profile 200 in 2.7s (next.js: 551ms, proxy.ts: 19ms, application-code: 2.2s)
-  └─ ƒ finalizeUploadAction("avatar", "aac97dbb-5740-4af2-8565-cd02556f7acc/avatar-f5af02b9-cce3-424c-b01a-98129c475b25.webp") in 2121ms src/features/files/actions.ts
- GET /candidate/profile 200 in 2.0s (next.js: 40ms, proxy.ts: 18ms, application-code: 1951ms)
- GET /sign-in 200 in 348ms (next.js: 77ms, proxy.ts: 17ms, application-code: 254ms)
- GET /manifest.webmanifest 200 in 35ms (next.js: 5ms, application-code: 30ms)
- POST /sign-in 200 in 1247ms (next.js: 29ms, proxy.ts: 22ms, application-code: 1196ms)
-  └─ ƒ signInAction({"email":"ui-big@seed.mukana.test","password":"Ui-Test-Pass-2026"}, undefined) in 909ms src/features/auth/actions.ts
+ GET /admin 200 in 1481ms (next.js: 86ms, proxy.ts: 29ms, application-code: 1366ms)
+ GET /admin 200 in 5.0s (next.js: 2.9s, proxy.ts: 357ms, application-code: 1725ms)
+ GET /admin/users?q=ui- 200 in 4.6s (next.js: 2.9s, proxy.ts: 113ms, application-code: 1641ms)
+ GET /sign-in 200 in 764ms (next.js: 352ms, proxy.ts: 20ms, application-code: 391ms)
+ GET /manifest.webmanifest 200 in 21ms (next.js: 5ms, application-code: 16ms)
+ POST /sign-in 200 in 1556ms (next.js: 22ms, proxy.ts: 25ms, application-code: 1510ms)
+  └─ ƒ signInAction({"email":"ui-admin@seed.mukana.test","password":"Ui-Test-Pass-2026"}, undefined) in 1364ms src/features/auth/actions.ts
+ GET /admin 200 in 1137ms (next.js: 205ms, proxy.ts: 22ms, application-code: 910ms)
 [browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
- GET /candidate 200 in 1842ms (next.js: 64ms, proxy.ts: 13ms, application-code: 1766ms)
- GET /candidate 200 in 1631ms (next.js: 15ms, proxy.ts: 20ms, application-code: 1597ms)
-[browser] Image with src "https://nfnkvhoxlzownuwvlyvb.supabase.co/storage/v1/object/public/company-logos/74c15885-91df-478e-a44c-39e7b6968c8d/company_logo-ad4be710-09ce-4e83-be4b-0baa375bb68a.jpg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
- GET /candidate/profile 200 in 1451ms (next.js: 113ms, proxy.ts: 48ms, application-code: 1290ms)
+ GET /admin 200 in 1103ms (next.js: 14ms, proxy.ts: 20ms, application-code: 1069ms)
+ GET /admin/users?q=ui- 200 in 1369ms (next.js: 161ms, proxy.ts: 28ms, application-code: 1180ms)
+ POST /admin/users?q=ui- 200 in 3.8s (next.js: 13ms, proxy.ts: 13ms, application-code: 3.8s)
+  └─ ƒ deleteUserAction("9432fe50-3f24-4123-8bf0-1df611f0afe9", "ui-victim@seed.mukana.test", "e2e test") in 2754ms src/features/admin/actions.ts
+ GET /admin/users?q=ui- 200 in 1048ms (next.js: 16ms, proxy.ts: 13ms, application-code: 1019ms)
 [?25h

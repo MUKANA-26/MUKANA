@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 import { ActionButton, ReasonButton } from "@/features/admin/reason-dialog";
 import { makeAdminAction, setUserStatusAction } from "@/features/admin/actions";
+import { DeleteUserButton } from "@/features/admin/delete-user-button";
 
 export const metadata: Metadata = { title: "Users" };
 
@@ -50,7 +51,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <PageHeader title="Users" description="Search, suspend or restore accounts. Every change is logged." />
+      <PageHeader title="Users" description="Search, suspend, restore or permanently delete accounts. Every change is logged." />
       <form method="get" className="mb-5 flex flex-wrap gap-2" role="search">
         <div className="min-w-48 flex-1">
           <label className="sr-only" htmlFor="user-q">Search users</label>
@@ -92,6 +93,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                   ) : (
                     <ReasonButton label="Suspend" title={`Suspend ${u.full_name || u.email}?`} description="They can no longer sign in or use Mukana until restored." confirmLabel="Suspend user" variant="outline" required run={setUserStatusAction.bind(null, u.id, "suspended")} />
                   )}
+                  <DeleteUserButton userId={u.id} name={u.full_name} email={u.email} role={u.role as "candidate" | "employer"} />
                   <ReasonButton label="Make admin" title="Make this user an administrator?" description="Administrators can moderate everything on the platform. This is logged." confirmLabel="Make admin" icon={<ShieldCheck aria-hidden />} run={makeAdminAction.bind(null, u.id)} />
                 </div>
               ) : null}
