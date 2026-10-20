@@ -18,42 +18,59 @@ export interface SessionProfile {
   onboarded: boolean;
 }
 
-/** The signed-in auth user and whether the second step (two-step verification) is still outstanding. */
-export const getAuthState = cache(async (): Promise<{ user: User; mfaPending: boolean; role: Role | null } | null> => {
+type ProfileRow = Omit<SessionProfile, "emailVerified" | "onboarded"> & { onboarded?: boolean | null };
+
+interface Loaded {
+  user: User;
+  claims: { aal?: string; app_metadata?: { role?: unknown } } | undefined;
+  profile: ProfileRow | null;
+}
+
+/**
+ * Everything a page needs to know about the caller, loaded once per request.
+ * The JWT is checked locally first (fast), then the user record and the profile are fetched IN PARALLEL: one network round trip
+ * instead of three in a row.
+ */
+const load = cache(async (): Promise<Loaded | null> => {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
   const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  const user = data.user;
-  if (!user) return null;
   const { data: claimsData } = await supabase.auth.getClaims();
-  const claims = claimsData?.claims as { aal?: string; app_metadata?: { role?: unknown } } | undefined;
-  const hasVerifiedFactor = (user.factors ?? []).some((f) => f.status === "verified");
-  const role = isRole(claims?.app_metadata?.role) ? claims!.app_metadata!.role : null;
-  return { user, mfaPending: hasVerifiedFactor && claims?.aal !== "aal2", role: role as Role | null };
+  const claims = claimsData?.claims as ({ sub?: string; aal?: string; app_metadata?: { role?: unknown } }) | undefined;
+  if (!claims?.sub) return null;
+
+  const profileQuery = async (): Promise<ProfileRow | null> => {
+    // `onboarded` arrives with the network migration; tolerate a database that does not have it yet.
+    const full = await supabase.from("profiles").select("id, role, status, full_name, email, phone, avatar_path, onboarded").eq("id", claims.sub!).maybeSingle();
+    if (full.data) return full.data as ProfileRow;
+    const basic = await supabase.from("profiles").select("id, role, status, full_name, email, phone, avatar_path").eq("id", claims.sub!).maybeSingle();
+    return (basic.data as ProfileRow | null) ?? null;
+  };
+  const [{ data: userData }, profile] = await Promise.all([supabase.auth.getUser(), profileQuery()]);
+  if (!userData.user) return null;
+  return { user: userData.user, claims, profile };
+});
+
+/** The signed-in auth user and whether the second step (two-step verification) is still outstanding. */
+export const getAuthState = cache(async (): Promise<{ user: User; mfaPending: boolean; role: Role | null } | null> => {
+  const loaded = await load();
+  if (!loaded) return null;
+  const hasVerifiedFactor = (loaded.user.factors ?? []).some((f) => f.status === "verified");
+  const role = isRole(loaded.claims?.app_metadata?.role) ? (loaded.claims!.app_metadata!.role as Role) : null;
+  return { user: loaded.user, mfaPending: hasVerifiedFactor && loaded.claims?.aal !== "aal2", role };
 });
 
 /** The verified current user plus their profile, or null. Cached per request. */
 export const getSession = cache(async (): Promise<SessionProfile | null> => {
+  const loaded = await load();
   const auth = await getAuthState();
-  if (!auth || auth.mfaPending) return null;
-  const supabase = await createClient();
-  const user = auth.user;
-  // `onboarded` arrives with the network migration; tolerate a database that does not have it yet.
-  let { data: profile } = await supabase
-    .from("profiles")
-    .select("id, role, status, full_name, email, phone, avatar_path, onboarded")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (!profile) {
-    const retry = await supabase.from("profiles").select("id, role, status, full_name, email, phone, avatar_path").eq("id", user.id).maybeSingle();
-    profile = retry.data ? { ...retry.data, onboarded: true } : null;
-  }
+  if (!loaded || !auth || auth.mfaPending) return null;
+  const profile = loaded.profile;
   if (!profile || !isRole(profile.role)) return null;
   return {
-    ...(profile as Omit<SessionProfile, "emailVerified" | "onboarded">),
+    ...profile,
     role: profile.role,
-    emailVerified: Boolean(user.email_confirmed_at),
-    onboarded: (profile as { onboarded?: boolean | null }).onboarded !== false,
+    emailVerified: Boolean(loaded.user.email_confirmed_at),
+    onboarded: profile.onboarded !== false,
   };
 });
 

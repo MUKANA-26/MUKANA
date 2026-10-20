@@ -36,6 +36,8 @@ interface Options {
   postId?: string;
   /** Posts of one interest group (members only; the database enforces it). */
   groupId?: string;
+  /** Changes on every refresh so the "For you" order changes with it. */
+  seed?: number;
 }
 
 /** Turns raw rows into posts: authors, photos, the viewer's likes/saves and the original of every repost. */
@@ -73,7 +75,7 @@ async function hydrate(supabase: SupabaseClient, userId: string, rows: Row[]): P
 }
 
 /** One page of posts. Modes use the server-side ranking; author, single-post and search views are plain lists. */
-export async function fetchPosts(supabase: SupabaseClient, userId: string, { page = 0, mode = "latest", tag, search, authorId, postId, groupId }: Options): Promise<{ posts: FeedPost[]; next: number | null }> {
+async function fetchPostsLegacy(supabase: SupabaseClient, userId: string, { page = 0, mode = "latest", tag, search, authorId, postId, groupId }: Options): Promise<{ posts: FeedPost[]; next: number | null }> {
   const from = page * FEED_PAGE;
   let rows: Row[] = [];
 
@@ -100,6 +102,44 @@ export async function fetchPosts(supabase: SupabaseClient, userId: string, { pag
     return { posts: await hydrate(supabase, userId, rows), next: ids.length === FEED_PAGE ? page + 1 : null };
   }
   return { posts: await hydrate(supabase, userId, rows), next: rows.length === FEED_PAGE ? page + 1 : null };
+}
+
+type PagePost = Omit<FeedPost, "avatarUrl" | "original"> & { original: (Omit<FeedPost, "avatarUrl" | "original"> & { original?: null }) | null };
+
+/**
+ * One page of posts in a single database call (feed_page, migration 0018): posts, media, authors, likes, saves and the originals of
+ * reposts all arrive together, so only the author photos need a second request. Falls back to the older multi-request path
+ * if the database has not been updated yet.
+ */
+export async function fetchPosts(supabase: SupabaseClient, userId: string, options: Options): Promise<{ posts: FeedPost[]; next: number | null }> {
+  const { page = 0, mode = "latest", tag, search, authorId, postId, groupId, seed = 0 } = options;
+  const { data, error } = await supabase.rpc("feed_page", {
+    p_mode: mode,
+    p_offset: page * FEED_PAGE,
+    p_limit: FEED_PAGE,
+    p_tag: tag ?? null,
+    p_seed: seed,
+    p_author: authorId ?? null,
+    p_group: groupId ?? null,
+    p_search: search && search.trim().length >= 2 ? search.trim() : null,
+    p_post: postId ?? null,
+  });
+  if (error) {
+    if (/feed_page|Could not find the function|42883|PGRST202/i.test(`${error.code} ${error.message}`)) return fetchPostsLegacy(supabase, userId, options);
+    throw error;
+  }
+  const rows = (data ?? []) as PagePost[];
+  const people = [...rows.map((r) => r.author), ...rows.map((r) => r.original?.author ?? null)].filter((a): a is FeedPerson => Boolean(a));
+  const avatars = await signAvatars(supabase, people);
+  const withAvatar = (r: Omit<FeedPost, "avatarUrl" | "original">): Omit<FeedPost, "original"> => ({
+    ...r,
+    avatarUrl: r.author?.avatar_path ? (avatars[r.author.avatar_path] ?? null) : null,
+  });
+  const posts: FeedPost[] = rows.map((r) => ({
+    ...withAvatar(r),
+    original: r.original ? { ...withAvatar(r.original), original: null } : null,
+  }));
+  return { posts, next: rows.length === FEED_PAGE ? page + 1 : null };
 }
 
 export async function fetchComments(supabase: SupabaseClient, postId: string): Promise<FeedComment[]> {

@@ -15,3 +15,6 @@ _src
 .claude
 .next-*
 supabase/RUN-ME-reset-everything.sql
+
+scripts/demo-seed/.cache
+scripts/demo-seed/demo-accounts.csv

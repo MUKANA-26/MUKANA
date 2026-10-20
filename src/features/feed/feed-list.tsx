@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Hash, Newspaper, RefreshCw, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { useT } from "@/components/prefs-provider";
 import { Composer } from "./composer";
 import { PostCard } from "./post-card";
+import { FeedSuggestions } from "./suggestions";
 import { fetchPosts, fetchTrending, type FeedMode } from "./queries";
 
 const MODES: { id: FeedMode; label: string }[] = [
@@ -52,6 +53,13 @@ export function FeedList({
   const router = useRouter();
   const t = useT();
   const [mode, setMode] = React.useState<FeedMode>("for_you");
+  // A new random seed on every page load and refresh: the "For you" order changes each time.
+  const [seed, setSeed] = React.useState(() => Math.floor(Math.random() * 1_000_000));
+  const lastRefresh = React.useRef(Date.now());
+  const refreshFeed = React.useCallback(() => {
+    lastRefresh.current = Date.now();
+    setSeed(Math.floor(Math.random() * 1_000_000));
+  }, []);
   const [term, setTerm] = React.useState("");
   const [search, setSearch] = React.useState("");
 
@@ -62,12 +70,36 @@ export function FeedList({
 
   const searching = search.length >= 2;
   const query = useInfiniteQuery({
-    queryKey: ["feed", "posts", { authorId: authorId ?? null, postId: postId ?? null, groupId: groupId ?? null, mode, tag: tag ?? null, search: searching ? search : null }],
+    queryKey: ["feed", "posts", { authorId: authorId ?? null, postId: postId ?? null, groupId: groupId ?? null, mode, tag: tag ?? null, search: searching ? search : null, seed }],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => fetchPosts(supabase, userId, { page: pageParam, mode, tag, search: searching ? search : null, authorId, postId, groupId }),
+    queryFn: ({ pageParam }) => fetchPosts(supabase, userId, { page: pageParam, mode, tag, search: searching ? search : null, authorId, postId, groupId, seed }),
     getNextPageParam: (last) => last.next,
     staleTime: 20_000,
+    placeholderData: keepPreviousData,
   });
+
+  // Coming back to the app after a few minutes gives a fresh mix.
+  React.useEffect(() => {
+    if (!showTabs) return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && Date.now() - lastRefresh.current > 5 * 60_000) refreshFeed();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [showTabs, refreshFeed]);
+
+  // Remember which posts were shown so the next refresh leads with new ones.
+  const recorded = React.useRef<Set<string>>(new Set());
+  React.useEffect(() => {
+    if (!showTabs || mode !== "for_you" || tag || searching) return;
+    const ids = (query.data?.pages.flatMap((p) => p.posts) ?? []).map((p) => p.id).filter((id) => !recorded.current.has(id));
+    if (!ids.length || query.isPlaceholderData) return;
+    const timer = setTimeout(() => {
+      ids.forEach((id) => recorded.current.add(id));
+      void supabase.rpc("record_impressions", { p_posts: ids });
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [query.data, query.isPlaceholderData, showTabs, mode, tag, searching, supabase]);
 
   const trending = useQuery({ queryKey: ["feed", "trending"], queryFn: () => fetchTrending(supabase), enabled: showTabs, staleTime: 120_000 });
   const following = useQuery({
@@ -165,6 +197,8 @@ export function FeedList({
         </div>
       ) : null}
 
+      {showTabs && mode === "for_you" && !tag && !searching ? <FeedSuggestions role={role} /> : null}
+
       {query.isLoading ? (
         <SkeletonList count={3} />
       ) : query.isError ? (
@@ -189,7 +223,7 @@ export function FeedList({
         <>
           {!postId ? (
             <div className="flex justify-end">
-              <Button variant="ghost" size="sm" onClick={() => void query.refetch()} loading={query.isRefetching}>
+              <Button variant="ghost" size="sm" onClick={refreshFeed} loading={query.isFetching && !query.isFetchingNextPage}>
                 <RefreshCw aria-hidden /> {t("Refresh")}
               </Button>
             </div>
