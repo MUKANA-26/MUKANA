@@ -284,3 +284,20 @@ html[data-splash="fading"] .mukana-splash {
     animation: none !important;
   }
 }
+
+/* Gentle floating chips on the landing page (switched off for reduced motion by the global rule above). */
+@keyframes mukana-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.mukana-float {
+  animation: mukana-float 5s ease-in-out infinite;
+}
+.mukana-float-slow {
+  animation: mukana-float 7s ease-in-out infinite;
+}

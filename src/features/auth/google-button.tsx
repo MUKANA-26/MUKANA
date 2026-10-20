@@ -6,14 +6,34 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { useHydrated } from "@/lib/use-hydrated";
 
-/** Google is shown only when it has been enabled for the site (NEXT_PUBLIC_GOOGLE_AUTH=true and the provider set up in Supabase). */
-export const googleEnabled = process.env.NEXT_PUBLIC_GOOGLE_AUTH === "true";
+let cached: Promise<boolean> | null = null;
+
+/**
+ * Whether Google sign-in is switched on in the Supabase project. Asked once per page load, so the button
+ * appears by itself the moment the Google provider is enabled (NEXT_PUBLIC_GOOGLE_AUTH=false hides it).
+ */
+function googleAvailable(): Promise<boolean> {
+  if (process.env.NEXT_PUBLIC_GOOGLE_AUTH === "false") return Promise.resolve(false);
+  cached ??= fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "" } })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j: { external?: { google?: boolean } } | null) => j?.external?.google === true)
+    .catch(() => false);
+  return cached;
+}
 
 export function GoogleButton({ next, label = "Continue with Google" }: { next?: string; label?: string }) {
   const hydrated = useHydrated();
+  const [enabled, setEnabled] = React.useState(false);
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  if (!googleEnabled) return null;
+  React.useEffect(() => {
+    let live = true;
+    void googleAvailable().then((v) => live && setEnabled(v));
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (!enabled) return null;
   return (
     <div className="space-y-2">
       <Button
@@ -44,10 +64,21 @@ export function GoogleButton({ next, label = "Continue with Google" }: { next?: 
         </svg>
         {label}
       </Button>
-      {error ? <p role="alert" className="text-sm text-danger">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="text-sm text-danger">
+          {error}
+        </p>
+      ) : null}
       <p className="text-center text-xs text-muted-foreground">
         By continuing with Google you agree to our{" "}
-        <Link href="/terms" className="underline">Terms</Link> and <Link href="/privacy" className="underline">Privacy Policy</Link>.
+        <Link href="/terms" className="underline">
+          Terms
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="underline">
+          Privacy Policy
+        </Link>
+        .
       </p>
       <div className="flex items-center gap-3 text-xs text-muted-foreground" aria-hidden>
         <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
