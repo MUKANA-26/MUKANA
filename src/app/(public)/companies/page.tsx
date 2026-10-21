@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Briefcase, Building2, MapPin, Search, Users } from "lucide-react";
+import { BadgeCheck, Briefcase, Building2, MapPin, Search, Users } from "lucide-react";
 import { AdaptiveLayout } from "@/components/layout/adaptive-layout";
-import { Badge, VerifiedBadge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/form";
 import { EmptyState, PageHeader } from "@/components/ui/misc";
@@ -142,7 +142,7 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Pr
                       </span>
                       <div className="min-w-0">
                         <p className="flex items-center gap-1.5 font-heading font-semibold leading-tight">
-                          <span className="truncate">{c.name}</span> <VerifiedBadge />
+                          <span className="truncate">{c.name}</span> <BadgeCheck className="size-4 shrink-0 text-link" aria-label="Verified" />
                         </p>
                         <p className="truncate text-xs text-muted-foreground">{c.industry}</p>
                         {c.location ? (

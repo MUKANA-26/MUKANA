@@ -72,7 +72,7 @@ export default async function CareerPage({ params }: { params: Promise<{ slug: s
   const session = await getSession();
   const today = new Date(Date.now() + 2 * 3600_000).toISOString().slice(0, 10);
 
-  const orFilter = c.keywords.map(clean).filter(Boolean).map((k) => `search_text.ilike.%${k}%`).join(",");
+  const orFilter = c.keywords.map(clean).filter(Boolean).map((k) => `title.ilike.%${k}%`).join(",");
   const [oppRes, lessonRes, mine, savedRes] = await Promise.all([
     orFilter
       ? supabase.from("opportunities").select(OPP_SELECT).eq("status", "published").gte("deadline", today).or(orFilter).order("published_at", { ascending: false }).limit(6)
