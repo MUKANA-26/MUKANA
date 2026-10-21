@@ -53,6 +53,7 @@ export async function saveOpportunityAction(
     stipend_amount: v.stipendType === "paid" && v.stipendAmount ? Number(v.stipendAmount) : null,
     stipend_currency: v.stipendType === "paid" ? nul(v.stipendCurrency) ?? "USD" : null,
     deadline: v.deadline,
+    no_experience: Boolean(v.noExperience),
     ...(intent === "publish" ? { status: "published" as const } : {}),
   };
 

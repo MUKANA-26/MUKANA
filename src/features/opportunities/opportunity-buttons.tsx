@@ -70,7 +70,7 @@ const REASONS = [
   { value: "other", label: "Something else" },
 ] as const;
 
-export function ReportButton({ targetType, targetId, label = "Report", compact = false }: { targetType: "opportunity" | "company" | "post" | "user"; targetId: string; label?: string; compact?: boolean }) {
+export function ReportButton({ targetType, targetId, label = "Report", compact = false }: { targetType: "opportunity" | "company" | "post" | "user" | "review"; targetId: string; label?: string; compact?: boolean }) {
   const [open, setOpen] = React.useState(false);
   const [reason, setReason] = React.useState<(typeof REASONS)[number]["value"]>("misleading");
   const [details, setDetails] = React.useState("");

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import { FileUploader } from "@/features/files/file-uploader";
+import { TagInput } from "@/components/ui/tag-input";
+import { GalleryManager } from "./gallery-manager";
 import { INDUSTRIES } from "@/lib/zimbabwe";
 import { companyLogoUrl } from "@/lib/storage";
 import type { CompanyPrivateRow, CompanyRow } from "@/types/db";
@@ -22,12 +24,20 @@ export function CompanyProfileForm({ company, priv }: { company: CompanyRow; pri
   const [pending, startTransition] = React.useTransition();
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<CompanyProfileValues>({
     resolver: zodResolver(companyProfileSchema),
     defaultValues: {
       name: company.name,
+      tagline: company.tagline ?? "",
+      sizeBand: (company.size_band ?? "") as CompanyProfileValues["sizeBand"],
+      foundedYear: company.founded_year ? String(company.founded_year) : "",
+      locations: company.locations ?? [],
+      benefits: company.benefits ?? [],
+      culture: company.culture ?? "",
+      lookingFor: company.looking_for ?? "",
       industry: company.industry ?? "",
       location: company.location ?? "",
       website: company.website ?? "",
@@ -96,6 +106,60 @@ export function CompanyProfileForm({ company, priv }: { company: CompanyRow; pri
               <Textarea id="description" rows={4} {...register("description")} />
             </Field>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Public company page</CardTitle>
+          <CardDescription>Candidates see this on your page in the Companies directory. Be honest and specific.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Field label="Tagline" htmlFor="tagline" error={errors.tagline?.message} hint="One line about what you do, up to 160 characters.">
+              <Input id="tagline" maxLength={160} {...register("tagline")} />
+            </Field>
+          </div>
+          <Field label="Company size" htmlFor="sizeBand" error={errors.sizeBand?.message}>
+            <Select id="sizeBand" {...register("sizeBand")}>
+              <option value="">Not shown</option>
+              {["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"].map((b) => (
+                <option key={b} value={b}>
+                  {b} employees
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Year founded" htmlFor="foundedYear" error={errors.foundedYear?.message}>
+            <Input id="foundedYear" inputMode="numeric" maxLength={4} placeholder="e.g. 1998" {...register("foundedYear")} />
+          </Field>
+          <div className="sm:col-span-2">
+            <Field label="Office and site locations" htmlFor="locations" hint="Press Enter or comma after each place.">
+              <Controller control={control} name="locations" render={({ field }) => <TagInput id="locations" value={field.value ?? []} onChange={field.onChange} placeholder="e.g. Harare, Bulawayo, Hwange" />} />
+            </Field>
+          </div>
+          <div className="sm:col-span-2">
+            <Field label="Benefits and support for attachees and trainees" htmlFor="benefits" hint="For example: transport allowance, lunch, mentorship, certificates, medical aid.">
+              <Controller
+                control={control}
+                name="benefits"
+                render={({ field }) => (
+                  <TagInput id="benefits" value={field.value ?? []} onChange={field.onChange} suggestions={["Allowance", "Transport", "Lunch", "Mentorship", "Training", "Certificate of attachment", "Medical aid", "Accommodation", "Laptop provided"]} placeholder="Add a benefit" />
+                )}
+              />
+            </Field>
+          </div>
+          <div className="sm:col-span-2">
+            <Field label="Culture" htmlFor="culture" error={errors.culture?.message} hint="How people work together at your company.">
+              <Textarea id="culture" rows={3} {...register("culture")} />
+            </Field>
+          </div>
+          <div className="sm:col-span-2">
+            <Field label="What we look for in attachees and graduates" htmlFor="lookingFor" error={errors.lookingFor?.message}>
+              <Textarea id="lookingFor" rows={3} {...register("lookingFor")} />
+            </Field>
+          </div>
+          <GalleryManager companyId={company.id} paths={company.gallery_paths ?? []} />
         </CardContent>
       </Card>
 

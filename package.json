@@ -8,9 +8,10 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "icons": "node scripts/generate-icons.mjs",
-    "test:sql": "node supabase/tests/rls.test.mjs && node supabase/tests/feed.test.mjs && node supabase/tests/seed.test.mjs && node supabase/tests/network.test.mjs && node supabase/tests/feedplus.test.mjs && node supabase/tests/jobs.test.mjs && node supabase/tests/reach.test.mjs && node supabase/tests/security.test.mjs && node supabase/tests/feedrec.test.mjs",
+    "test:sql": "node supabase/tests/rls.test.mjs && node supabase/tests/feed.test.mjs && node supabase/tests/seed.test.mjs && node supabase/tests/network.test.mjs && node supabase/tests/feedplus.test.mjs && node supabase/tests/jobs.test.mjs && node supabase/tests/reach.test.mjs && node supabase/tests/security.test.mjs && node supabase/tests/feedrec.test.mjs && node supabase/tests/career.test.mjs",
     "demo:seed": "node scripts/demo-seed/seed.mjs",
-    "demo:remove": "node scripts/demo-seed/remove.mjs"
+    "demo:remove": "node scripts/demo-seed/remove.mjs",
+    "build:content": "node scripts/build-0019.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.0",

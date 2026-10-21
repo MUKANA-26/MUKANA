@@ -38,6 +38,7 @@ function toDefaults(o: OpportunityRow | null): OpportunityValues {
       stipendAmount: "",
       stipendCurrency: "USD",
       deadline: "",
+      noExperience: true,
     };
   }
   return {
@@ -60,6 +61,7 @@ function toDefaults(o: OpportunityRow | null): OpportunityValues {
     stipendAmount: o.stipend_amount != null ? String(o.stipend_amount) : "",
     stipendCurrency: o.stipend_currency ?? "USD",
     deadline: o.deadline,
+    noExperience: Boolean(o.no_experience),
   };
 }
 
@@ -190,6 +192,13 @@ export function OpportunityForm({
               </Select>
             </Field>
           ) : null}
+          <label className="flex items-start gap-3 rounded-xl border border-border p-3 sm:col-span-2">
+            <input type="checkbox" className="mt-1 size-4" {...register("noExperience")} />
+            <span>
+              <span className="block text-sm font-semibold">No experience needed</span>
+              <span className="block text-sm text-muted-foreground">Shows a badge and lists this opportunity in the Early careers section for people with no work experience.</span>
+            </span>
+          </label>
           <Field label="Number of slots" htmlFor="slots" error={errors.slots?.message} required>
             <Input id="slots" inputMode="numeric" {...register("slots")} />
           </Field>

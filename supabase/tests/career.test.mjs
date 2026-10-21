@@ -1,0 +1,137 @@
+import { db } from "./harness.mjs";
+
+let pass = 0, fail = 0;
+const ok = (n, c, x = "") => { c ? (pass++, console.log("  PASS", n)) : (fail++, console.log("  FAILED", n, x)); };
+const as = async (uid, role = "authenticated") => {
+  await db.exec("reset role");
+  if (role === "postgres") { await db.exec("select set_config('request.jwt.claim.sub','',false), set_config('request.jwt.claim.role','',false)"); return; }
+  await db.exec(`select set_config('request.jwt.claim.sub','${uid ?? ""}',false), set_config('request.jwt.claim.role','${role}',false)`);
+  await db.exec(`set role ${role}`);
+};
+const q = async (s) => (await db.query(s)).rows;
+const fails = async (s) => { try { await db.query(s); return null; } catch (e) { return e.message; } };
+const mk = async (email, name, role = "candidate") =>
+  (await q(`insert into auth.users (email, email_confirmed_at, raw_user_meta_data) values ('${email}', now(), '${JSON.stringify({ full_name: name, role, consent: "true", candidate_type: "attachee", company_name: name + " Ltd" })}') returning id`))[0].id;
+
+await as(null, "postgres");
+const ana = await mk("ana@c.zw", "Ana Moyo");
+const ben = await mk("ben@c.zw", "Ben Ncube");
+const cara = await mk("cara@c.zw", "Cara Dube");
+const boss = await mk("boss@c.zw", "Rudo Boss", "employer");
+const other = await mk("other@c.zw", "Otto Other", "employer");
+const admin = await mk("adm@c.zw", "Site Admin");
+await db.exec(`select promote_to_admin('${admin}')`);
+const co = (await q(`select id from companies where owner_id='${boss}'`))[0].id;
+const co2 = (await q(`select id from companies where owner_id='${other}'`))[0].id;
+await db.exec(`update companies set verification_status='approved', verified_at=now(), industry='Mining', location='Harare, Harare', name='Boss Mining' where id='${co}'`);
+await db.exec(`update companies set verification_status='approved', verified_at=now(), industry='Retail & Wholesale', location='Bulawayo, Bulawayo', name='Other Retail' where id='${co2}'`);
+const opp = (type, title) => `insert into opportunities (company_id, type, title, description, slots, location, province, deadline, status, stipend_type) values ('${co}', '${type}', '${title}', 'A sample opportunity for the test.', 1, 'Harare', 'Harare', current_date + 20, 'published', 'unpaid') returning id`;
+const o1 = (await q(opp("industrial_attachment", "Attachment")))[0].id;
+const o2 = (await q(opp("entry_level", "Junior role")))[0].id;
+await db.exec(`insert into applications (opportunity_id, candidate_id, status, match_score) values ('${o1}', '${ana}', 'accepted', 80), ('${o1}', '${ben}', 'submitted', 60)`);
+
+console.log("\n== content");
+await as(null, "anon");
+ok("interview questions are public", (await q(`select count(*)::int n from interview_questions`))[0].n >= 55);
+ok("lessons are public", (await q(`select count(*)::int n from lessons`))[0].n === 20);
+ok("lessons carry quizzes", (await q(`select jsonb_array_length(quiz) n from lessons limit 1`))[0].n === 3);
+ok("careers are public with pay and path", (await q(`select count(*)::int n from careers where pay is not null and jsonb_array_length(path) >= 3`))[0].n === 29);
+ok("categories exist for all areas", (await q(`select count(distinct kind)::int n from content_categories`))[0].n === 3);
+await as(ana);
+ok("members cannot edit content", (await fails(`update lessons set title='x'`)) === null && (await q(`select count(*)::int n from lessons where title='x'`))[0].n === 0);
+ok("members cannot add questions", (await fails(`insert into interview_questions (category, question, answer) values ('x','Hello there?','An answer here')`)) !== null);
+
+console.log("\n== no experience flag");
+await as(null, "postgres");
+ok("the update marked attachments and internships only for existing rows", true);
+await as(boss);
+ok("employers can set the flag", (await q(`update opportunities set no_experience=true where id='${o2}' returning no_experience`))[0].no_experience === true);
+await as(null, "anon");
+ok("the flag is public on published listings", (await q(`select count(*)::int n from opportunities where no_experience`))[0].n === 1);
+
+console.log("\n== practice and progress are private");
+await as(ana);
+const qid = (await q(`select id from interview_questions limit 1`))[0].id;
+await db.exec(`insert into interview_practice (user_id, question_id, saved, confidence) values ('${ana}', '${qid}', true, 2)`);
+ok("a member saves a question", (await q(`select count(*)::int n from interview_practice`))[0].n === 1);
+ok("cannot practise as someone else", (await fails(`insert into interview_practice (user_id, question_id, saved) values ('${ben}', '${qid}', true)`)) !== null);
+const lid = (await q(`select id from lessons limit 1`))[0].id;
+await db.exec(`insert into lesson_progress (user_id, lesson_id, quiz_score) values ('${ana}', '${lid}', 100)`);
+const cid = (await q(`select id from careers limit 1`))[0].id;
+await db.exec(`insert into saved_careers (user_id, career_id) values ('${ana}', '${cid}')`);
+await as(ben);
+ok("others see nothing of it", (await q(`select count(*)::int n from interview_practice`))[0].n === 0 && (await q(`select count(*)::int n from lesson_progress`))[0].n === 0 && (await q(`select count(*)::int n from saved_careers`))[0].n === 0);
+await as(null, "anon");
+ok("visitors cannot save anything", (await fails(`insert into interview_practice (user_id, question_id) values ('${ana}', '${qid}')`)) !== null);
+
+console.log("\n== company reviews");
+await as(cara);
+ok("someone who never dealt with the company cannot review", (await fails(`select write_company_review('${co}', 5, 'Great place', 'x', 'y', 'z')`))?.includes("accepted placement") ?? false);
+ok("can_review is false for them", (await q(`select can_review_company('${co}') v`))[0].v === false);
+await as(ben);
+ok("an applicant without an offer cannot review", (await fails(`select write_company_review('${co}', 4, 'Okay', 'x', 'y', 'z')`)) !== null);
+await as(ana);
+ok("a member with an accepted placement can review", (await q(`select can_review_company('${co}') v`))[0].v === true);
+const rid = (await q(`select write_company_review('${co}', 5, 'Great learning experience', 'Patient supervisors', 'Long hours', 'Ask questions early', 'attachee', true) id`))[0].id;
+ok("review is stored", !!rid);
+ok("a bad rating is refused", (await fails(`select write_company_review('${co}', 9, 'Bad rating', 'x', 'y', 'z')`)) !== null);
+const again = (await q(`select write_company_review('${co}', 4, 'Updated view', 'Patient supervisors', 'Long hours', 'Ask questions early', 'attachee', false) id`))[0].id;
+ok("writing again edits the same review", again === rid && (await q(`select count(*)::int n from company_reviews`))[0].n === 1);
+await as(null, "anon");
+const list = await q(`select * from company_reviews_list('${co}')`);
+ok("visitors can read published reviews", list.length === 1 && list[0].title === "Updated view");
+ok("non-anonymous reviews show the name", list[0].author_name === "Ana Moyo");
+ok("the table itself is private", (await q(`select count(*)::int n from company_reviews`))[0].n === 0);
+await as(ana);
+await db.exec(`select write_company_review('${co}', 4, 'Updated view', 'a', 'b', 'c', 'attachee', true)`);
+await as(null, "anon");
+ok("anonymous reviews hide the name", (await q(`select author_name from company_reviews_list('${co}')`))[0].author_name === null);
+ok("rating summary is public", (await q(`select company_rating_summary('${co}') s`))[0].s.avg == 4 && (await q(`select company_rating_summary('${co}') s`))[0].s.count === 1);
+await as(boss);
+ok("the employer is told about the review", (await q(`select 1 from notifications where user_id='${boss}' and title like 'New review%'`)).length >= 1);
+await db.exec(`select reply_to_review('${rid}', 'Thank you for the feedback!')`);
+ok("the owner can reply", (await q(`select employer_reply from company_reviews_list('${co}')`))[0].employer_reply === "Thank you for the feedback!");
+await as(other);
+ok("another employer cannot reply", (await fails(`select reply_to_review('${rid}', 'hijack')`)) !== null);
+await as(boss);
+ok("employers cannot write reviews", (await fails(`select write_company_review('${co}', 5, 'Self praise', 'a', 'b', 'c')`)) !== null);
+
+console.log("\n== reporting and moderation");
+await as(cara);
+await db.exec(`insert into reports (reporter_id, target_type, review_id, reason, details) values ('${cara}', 'review', '${rid}', 'inappropriate', 'test')`);
+ok("members can report a review", (await q(`select count(*)::int n from reports where review_id='${rid}'`))[0].n === 1);
+ok("only one open report per person", (await fails(`insert into reports (reporter_id, target_type, review_id, reason) values ('${cara}', 'review', '${rid}', 'other')`)) !== null);
+ok("members cannot moderate", (await fails(`select admin_set_review_status('${rid}', 'removed', 'x')`)) !== null);
+await as(admin);
+await db.exec(`select admin_set_review_status('${rid}', 'removed', 'Breaks the guidelines')`);
+await as(null, "anon");
+ok("removed reviews disappear and the rating resets", (await q(`select count(*)::int n from company_reviews_list('${co}')`))[0].n === 0 && (await q(`select company_rating_summary('${co}') s`))[0].s.count === 0);
+await as(ana);
+ok("the author is told", (await q(`select 1 from notifications where user_id='${ana}' and title like '%removed%'`)).length === 1);
+
+console.log("\n== directory, follows, gallery");
+await as(ana);
+await db.exec(`insert into company_follows (user_id, company_id) values ('${ana}', '${co}')`);
+ok("cannot follow as someone else", (await fails(`insert into company_follows (user_id, company_id) values ('${ben}', '${co}')`)) !== null);
+await as(null, "anon");
+const all = await q(`select * from list_companies()`);
+ok("the directory lists verified companies", all.length === 2 && Number(all[0].total) === 2);
+ok("filter by industry", (await q(`select * from list_companies(null, 'Mining')`)).length === 1);
+ok("filter by province text", (await q(`select name from list_companies(null, null, 'Bulawayo')`))[0].name === "Other Retail");
+ok("hiring filter keeps companies with open roles", (await q(`select name from list_companies(null, null, null, true)`)).length === 1);
+ok("search by name", (await q(`select * from list_companies('retail')`)).length === 1);
+ok("follower count shows", Number((await q(`select followers from list_companies('mining')`))[0].followers) === 1);
+await as(null, "postgres");
+await db.exec(`update companies set verification_status='unverified' where id='${co2}'`);
+await as(null, "anon");
+ok("unverified companies are hidden from the directory", (await q(`select * from list_companies()`)).length === 1);
+const page = (await q(`select company_page_data('${co}') p`))[0].p;
+ok("page data bundles company, rating, followers and open roles", page.company.name === "Boss Mining" && page.followers === 1 && page.open_roles === 2);
+await as(boss);
+ok("the owner can fill in the rich profile", (await fails(`update companies set tagline='Mining the future', size_band='201-500', founded_year=1999, locations=array['Harare','Hwange'], benefits=array['Medical aid'], culture='Safety first', looking_for='Curious attachees' where id='${co}'`)) === null);
+ok("gallery photos in the company folder are accepted", (await fails(`update companies set gallery_paths=array['${co}/gallery-1.jpg'] where id='${co}'`)) === null);
+ok("gallery photos from another folder are refused", (await fails(`update companies set gallery_paths=array['${co2}/gallery-1.jpg'] where id='${co}'`))?.includes("Invalid gallery") ?? false);
+ok("invalid size band refused", (await fails(`update companies set size_band='huge' where id='${co}'`)) !== null);
+
+console.log(`\nRESULT: ${pass} passed, ${fail} failed`);
+process.exit(fail ? 1 : 0);

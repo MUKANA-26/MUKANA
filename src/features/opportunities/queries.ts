@@ -15,6 +15,8 @@ export interface OpportunityFilters {
   field?: string;
   province?: string;
   pay?: string;
+  /** Only opportunities where the employer ticked "No experience needed". */
+  noExperience?: boolean;
   startFrom?: string;
   startTo?: string;
   deadlineBefore?: string;
@@ -51,6 +53,7 @@ export async function listOpportunities(filters: OpportunityFilters) {
   }
   if (filters.province) query = query.eq("province", filters.province);
   if (filters.pay === "paid" || filters.pay === "unpaid") query = query.eq("stipend_type", filters.pay);
+  if (filters.noExperience) query = query.eq("no_experience", true);
   if (filters.startFrom) query = query.gte("start_date", filters.startFrom);
   if (filters.startTo) query = query.lte("start_date", filters.startTo);
   if (filters.deadlineBefore) query = query.lte("deadline", filters.deadlineBefore);

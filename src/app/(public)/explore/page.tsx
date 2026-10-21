@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BellRing, BookOpen, CalendarDays, GraduationCap, UserSearch, Users } from "lucide-react";
+import { BellRing, BookOpen, Briefcase, Building2, CalendarDays, Compass, GraduationCap, Mic, Sprout, UserSearch, Users } from "lucide-react";
 import { AdaptiveLayout } from "@/components/layout/adaptive-layout";
 import { PageHeader } from "@/components/ui/misc";
 import { requireUser } from "@/lib/auth";
@@ -10,9 +10,14 @@ export const metadata: Metadata = { title: "Explore" };
 export default async function ExplorePage() {
   const session = await requireUser();
   const cards = [
+    { href: "/early-careers", title: "Early careers", text: "Attachments, internships, graduate programmes and jobs with no experience needed.", icon: Briefcase },
+    { href: "/companies", title: "Companies", text: "Browse verified employers, follow them and read reviews.", icon: Building2 },
+    { href: "/careers", title: "Career explorer", text: "See the qualifications, skills and steps for each career.", icon: Compass },
+    { href: "/skills", title: "Skills development", text: "Short lessons with exercises and quizzes.", icon: Sprout },
+    { href: "/interview-prep", title: "Interview preparation", text: "Common questions, model answers and practice mode.", icon: Mic },
     { href: "/events", title: "Events", text: "Webinars, meet-ups and career fairs.", icon: CalendarDays },
     { href: "/groups", title: "Groups", text: "Join conversations about your school, skills or industry.", icon: Users },
-    { href: "/learn", title: "Learn", text: "Career guides, interview preparation and skill quizzes with badges.", icon: BookOpen },
+    { href: "/learn", title: "Learn", text: "Career guides and skill quizzes that earn profile badges.", icon: BookOpen },
     { href: "/mentors", title: "Mentors", text: "Ask experienced people for advice.", icon: GraduationCap },
     ...(session.role === "candidate" ? [{ href: "/candidate/alerts", title: "Job alerts", text: "Be told the moment a matching opportunity opens.", icon: BellRing }] : []),
     ...(session.role === "employer" ? [{ href: "/employer/talent", title: "Find talent", text: "Search candidates, shortlist and invite them to apply.", icon: UserSearch }] : []),

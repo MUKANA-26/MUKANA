@@ -60,6 +60,11 @@ export async function setVerifiedAction(userId: string, value: boolean): Promise
   return rpc("admin_set_verified", { p_user: userId, p_value: value }, value ? "Verified badge given" : "Verified badge removed", ["/admin/users"]);
 }
 
+export async function setReviewStatusAction(reviewId: string, status: "published" | "removed", reason?: string): Promise<ActionResult> {
+  if (!uuid.safeParse(reviewId).success) return { ok: false, error: "Invalid review" };
+  return rpc("admin_set_review_status", { p_review: reviewId, p_status: status, p_reason: reason?.trim() || null }, status === "removed" ? "Review removed" : "Review restored", ["/admin/reports"]);
+}
+
 export async function moderatePostAction(postId: string, action: "remove" | "restore", reason?: string): Promise<ActionResult> {
   if (!uuid.safeParse(postId).success) return { ok: false, error: "Invalid post" };
   return rpc("admin_moderate_post", { p_post: postId, p_action: action, p_reason: reason?.trim() || null }, action === "remove" ? "Post removed" : "Post restored", ["/admin/reports", "/feed"]);

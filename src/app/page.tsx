@@ -3,6 +3,8 @@ import {
   ArrowRight,
   BadgeCheck,
   BookOpen,
+  Building2,
+  Compass,
   BriefcaseBusiness,
   CalendarDays,
   FileSearch,
@@ -34,7 +36,9 @@ const features = [
   { icon: Users, title: "Your network", body: "Connect with classmates, lecturers and employers. Get endorsed for your skills.", tone: "bg-warning-soft text-warning-soft-foreground", href: "/sign-up" },
   { icon: MessageCircle, title: "Chat and community", body: "Message employers, join groups and share what you are learning.", tone: "bg-info-soft text-info-soft-foreground", href: "/sign-up" },
   { icon: CalendarDays, title: "Events and career fairs", body: "Webinars, meet-ups and career fairs hosted by verified companies.", tone: "bg-success-soft text-success-soft-foreground", href: "/events" },
-  { icon: BookOpen, title: "Learn and earn badges", body: "Interview tips, career guides and short quizzes that earn skill badges.", tone: "bg-warning-soft text-warning-soft-foreground", href: "/learn" },
+  { icon: BookOpen, title: "Skills and interview prep", body: "Short lessons, interview questions with model answers, and quizzes that earn badges.", tone: "bg-warning-soft text-warning-soft-foreground", href: "/skills" },
+  { icon: Compass, title: "Career path explorer", body: "See the qualifications, skills and steps for careers in Zimbabwe.", tone: "bg-info-soft text-info-soft-foreground", href: "/careers" },
+  { icon: Building2, title: "Company profiles", body: "Browse verified employers, follow them and read reviews from attachees.", tone: "bg-success-soft text-success-soft-foreground", href: "/companies" },
 ];
 
 const trust = [

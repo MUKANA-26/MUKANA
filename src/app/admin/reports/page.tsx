@@ -8,7 +8,7 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/utils";
 import { ActionButton, ReasonButton } from "@/features/admin/reason-dialog";
-import { moderateOpportunityAction, moderatePostAction, resolveReportAction, setCompanySuspendedAction, setUserStatusAction } from "@/features/admin/actions";
+import { moderateOpportunityAction, moderatePostAction, resolveReportAction, setCompanySuspendedAction, setReviewStatusAction, setUserStatusAction } from "@/features/admin/actions";
 
 export const metadata: Metadata = { title: "Reports" };
 
@@ -23,7 +23,7 @@ const REASON_LABEL: Record<string, string> = {
 
 interface Report {
   id: string;
-  target_type: "opportunity" | "company" | "post" | "user";
+  target_type: "opportunity" | "company" | "post" | "user" | "review";
   reason: string;
   details: string | null;
   status: "open" | "actioned" | "dismissed";
@@ -35,6 +35,7 @@ interface Report {
   profiles: { full_name: string } | null;
   posts?: { id: string; body: string; status: string } | null;
   reported?: { id: string; full_name: string; status: string } | null;
+  review?: { id: string; title: string; rating: number; status: string; pros: string | null; cons: string | null; company_id: string } | null;
 }
 
 const BASE_SELECT =
@@ -44,7 +45,7 @@ export default async function ReportsPage() {
   await requireRole("admin");
   const supabase = await createClient();
   // Post reports need the community-feed migration; fall back gracefully if it is not applied yet.
-  const SELECT = `${BASE_SELECT}, posts(id, body, status), reported:profiles!reports_user_id_fkey(id, full_name, status)`;
+  const SELECT = `${BASE_SELECT}, posts(id, body, status), reported:profiles!reports_user_id_fkey(id, full_name, status), review:company_reviews!reports_review_id_fkey(id, title, rating, status, pros, cons, company_id)`;
   type Res = { data: unknown; error: unknown };
   let [openRes, doneRes]: Res[] = await Promise.all([
     supabase.from("reports").select(SELECT).eq("status", "open").order("created_at"),
@@ -75,7 +76,11 @@ export default async function ReportsPage() {
                   <CardHeader className="pb-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <CardTitle className="text-base">
-                        {r.target_type === "user" ? (
+                        {r.target_type === "review" ? (
+                          <Link href={`/companies/${r.review?.company_id ?? ""}#reviews-h`} className="hover:underline" target="_blank">
+                            Review: {r.review?.title ?? "(removed)"} ({r.review?.rating ?? "?"}/5)
+                          </Link>
+                        ) : r.target_type === "user" ? (
                           <Link href={`/people/${r.reported?.id ?? ""}`} className="hover:underline" target="_blank">
                             Member: {r.reported?.full_name ?? "(removed)"}
                           </Link>
@@ -94,7 +99,7 @@ export default async function ReportsPage() {
                       <Badge variant="danger">{REASON_LABEL[r.reason] ?? r.reason}</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {r.target_type === "opportunity" ? `Opportunity by ${opp?.companies?.name ?? "—"}` : r.target_type === "post" ? "Feed post" : r.target_type === "user" ? "Member profile" : "Company"} · reported by {r.profiles?.full_name ?? "a user"} · {formatDateTime(r.created_at)}
+                      {r.target_type === "opportunity" ? `Opportunity by ${opp?.companies?.name ?? "—"}` : r.target_type === "post" ? "Feed post" : r.target_type === "user" ? "Member profile" : r.target_type === "review" ? "Company review" : "Company"} · reported by {r.profiles?.full_name ?? "a user"} · {formatDateTime(r.created_at)}
                     </p>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -116,6 +121,13 @@ export default async function ReportsPage() {
                           <ReasonButton label="Restore post" title="Restore this post" confirmLabel="Restore" variant="success" run={(note) => moderatePostAction(r.posts!.id, "restore", note)} />
                         ) : (
                           <ReasonButton label="Remove post" title="Remove this post" description="It disappears for everyone and the author is told why." confirmLabel="Remove" variant="destructive" required run={(reason) => moderatePostAction(r.posts!.id, "remove", reason)} />
+                        )
+                      ) : null}
+                      {r.target_type === "review" && r.review ? (
+                        r.review.status === "removed" ? (
+                          <ReasonButton label="Restore review" title="Restore this review" confirmLabel="Restore" variant="success" run={(note) => setReviewStatusAction(r.review!.id, "published", note)} />
+                        ) : (
+                          <ReasonButton label="Remove review" title="Remove this review" description="It disappears from the company page and the author is told why." confirmLabel="Remove" variant="destructive" required run={(reason) => setReviewStatusAction(r.review!.id, "removed", reason)} />
                         )
                       ) : null}
                       {r.target_type === "user" && r.reported ? (
@@ -150,7 +162,7 @@ export default async function ReportsPage() {
             {done.map((r) => (
               <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
                 <div className="min-w-0">
-                  <p className="truncate font-semibold">{r.opportunities?.title ?? r.companies?.name ?? r.reported?.full_name ?? "Feed post"}</p>
+                  <p className="truncate font-semibold">{r.opportunities?.title ?? r.companies?.name ?? r.reported?.full_name ?? r.review?.title ?? "Feed post"}</p>
                   <p className="text-xs text-muted-foreground">
                     {REASON_LABEL[r.reason]} · {formatDateTime(r.resolved_at)}
                     {r.resolution_note ? ` · ${r.resolution_note}` : ""}

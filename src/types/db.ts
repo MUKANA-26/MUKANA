@@ -101,6 +101,14 @@ export interface CompanyRow {
   verification_status: VerificationStatus;
   verified_at: string | null;
   suspended: boolean;
+  tagline?: string | null;
+  size_band?: string | null;
+  founded_year?: number | null;
+  locations?: string[];
+  benefits?: string[];
+  culture?: string | null;
+  looking_for?: string | null;
+  gallery_paths?: string[];
 }
 
 export interface CompanyPrivateRow {
@@ -126,6 +134,7 @@ export interface VerificationRequestRow {
 
 export interface OpportunityRow {
   id: string;
+  no_experience?: boolean;
   company_id: string;
   type: OpportunityType;
   title: string;

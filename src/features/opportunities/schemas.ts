@@ -37,6 +37,7 @@ export const opportunitySchema = z
       .or(z.literal("")),
     stipendCurrency: z.enum(["USD", "ZiG"]).optional().or(z.literal("")),
     deadline: dateString,
+    noExperience: z.boolean().optional(),
   })
   .refine((v) => !v.startDate || v.deadline <= v.startDate, {
     path: ["deadline"],

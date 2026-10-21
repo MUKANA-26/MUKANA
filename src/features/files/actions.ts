@@ -80,6 +80,12 @@ export async function finalizeUploadAction(kind: FileKind, path: string): Promis
     const { error } = await supabase.from("profiles").update({ cover_path: path }).eq("id", session.id);
     if (error) return reject("Could not save your cover photo");
     await remove(prev?.cover_path);
+  } else if (kind === "company_gallery" && companyId) {
+    const { data: prev } = await supabase.from("companies").select("gallery_paths").eq("id", companyId).maybeSingle();
+    const existing = ((prev?.gallery_paths as string[] | null) ?? []).filter(Boolean);
+    if (existing.length >= 8) return reject("You can add up to 8 company photos");
+    const { error } = await supabase.from("companies").update({ gallery_paths: [...existing, path] }).eq("id", companyId);
+    if (error) return reject("Could not save your photo");
   } else if (kind === "company_logo" && companyId) {
     const { data: prev } = await supabase.from("companies").select("logo_path").eq("id", companyId).maybeSingle();
     const { error } = await supabase.from("companies").update({ logo_path: path }).eq("id", companyId);
@@ -121,4 +127,16 @@ export async function getSignedFileUrlAction(bucket: BucketId, path: string): Pr
   const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 60);
   if (error || !data) return { ok: false, error: "You don't have access to this file, or it no longer exists." };
   return { ok: true, url: data.signedUrl };
+}
+
+/** Removes one company gallery photo (owner only). */
+export async function removeGalleryPhotoAction(path: string): Promise<FileActionResult> {
+  const session = await requireUser();
+  const supabase = await createClient();
+  const { data: company } = await supabase.from("companies").select("id, gallery_paths").eq("owner_id", session.id).maybeSingle();
+  if (!company || !(company.gallery_paths as string[]).includes(path)) return { ok: false, error: "Photo not found" };
+  const { error } = await supabase.from("companies").update({ gallery_paths: (company.gallery_paths as string[]).filter((p) => p !== path) }).eq("id", company.id);
+  if (error) return { ok: false, error: "Could not remove the photo" };
+  await supabase.storage.from("company-logos").remove([path]);
+  return { ok: true };
 }

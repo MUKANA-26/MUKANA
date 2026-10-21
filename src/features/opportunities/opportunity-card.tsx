@@ -86,6 +86,7 @@ export function OpportunityCard({
         <Badge variant={o.type === "industrial_attachment" || o.type === "internship" ? "info" : "success"}>{TYPE_LABEL[o.type]}</Badge>
         <Badge variant="neutral">{o.mode === "hybrid" ? "Hybrid" : "On-site"}</Badge>
         <DeadlineTag deadline={o.deadline} status={o.status} />
+        {(o as { no_experience?: boolean }).no_experience ? <Badge variant="success">No experience needed</Badge> : null}
         {isNew ? <Badge variant="cta">New</Badge> : null}
         {applied ? (
           <Badge variant="success">

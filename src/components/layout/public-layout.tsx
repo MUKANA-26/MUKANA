@@ -29,6 +29,12 @@ export async function PublicHeader() {
             <Link href="/opportunities">Opportunities</Link>
           </Button>
           <Button asChild variant="ghost">
+            <Link href="/companies">Companies</Link>
+          </Button>
+          <Button asChild variant="ghost">
+            <Link href="/careers">Careers</Link>
+          </Button>
+          <Button asChild variant="ghost">
             <Link href="/#how-it-works">How it works</Link>
           </Button>
           <Button asChild variant="ghost">

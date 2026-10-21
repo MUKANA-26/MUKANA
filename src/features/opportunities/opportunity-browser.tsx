@@ -20,6 +20,7 @@ export function parseFilters(params: Params): OpportunityFilters {
     field: one(params.field),
     province: one(params.province),
     pay: one(params.pay),
+    noExperience: one(params.noexp) === "1",
     startFrom: one(params.startFrom),
     startTo: one(params.startTo),
     deadlineBefore: one(params.deadlineBefore),
@@ -45,6 +46,7 @@ export async function OpportunityBrowser({
   detailBase,
   lockedTypes,
   myProvince,
+  hideType = false,
 }: {
   params: Params;
   basePath: string;
@@ -54,6 +56,8 @@ export async function OpportunityBrowser({
   lockedTypes?: OpportunityType[];
   /** For candidates: their province, powering the "Near me" shortcut. */
   myProvince?: string | null;
+  /** Hide the type dropdown when the page already offers type tabs. */
+  hideType?: boolean;
 }) {
   const filters = parseFilters(params);
   const { items, total, page } = await listOpportunities({ ...filters, candidateTypes: lockedTypes });
@@ -77,6 +81,7 @@ export async function OpportunityBrowser({
   return (
     <div className="space-y-5">
       <form method="get" action={basePath} className="space-y-3 rounded-xl border border-border bg-surface p-3 sm:p-4" role="search">
+        {hideType && filters.type ? <input type="hidden" name="type" value={filters.type} /> : null}
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
@@ -100,7 +105,7 @@ export async function OpportunityBrowser({
         <details className="group" open={hasFilters}>
           <summary className="cursor-pointer select-none text-sm font-semibold text-link">Filters</summary>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {!lockedTypes || lockedTypes.length > 1 ? (
+            {!hideType && (!lockedTypes || lockedTypes.length > 1) ? (
               <label className="space-y-1 text-sm font-medium">
                 Type
                 <Select name="type" defaultValue={filters.type}>
@@ -142,6 +147,10 @@ export async function OpportunityBrowser({
                 <option value="paid">Paid</option>
                 <option value="unpaid">Unpaid</option>
               </Select>
+            </label>
+            <label className="flex items-end gap-2 pb-2 text-sm font-medium">
+              <input type="checkbox" name="noexp" value="1" defaultChecked={filters.noExperience} className="size-4" />
+              No experience needed
             </label>
             <label className="space-y-1 text-sm font-medium">
               Starts after

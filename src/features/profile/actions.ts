@@ -76,6 +76,13 @@ export async function saveCompanyProfileAction(values: CompanyProfileValues): Pr
       location: nul(v.location),
       website: nul(v.website),
       description: nul(v.description),
+      tagline: nul(v.tagline),
+      size_band: nul(v.sizeBand),
+      founded_year: v.foundedYear ? Number(v.foundedYear) : null,
+      locations: v.locations ?? [],
+      benefits: v.benefits ?? [],
+      culture: nul(v.culture),
+      looking_for: nul(v.lookingFor),
     })
     .eq("id", company.id);
   if (error) return { ok: false, error: "Could not save the company details." };

@@ -72,6 +72,13 @@ export const candidateProfileSchema = z
 export type CandidateProfileValues = z.infer<typeof candidateProfileSchema>;
 
 export const companyProfileSchema = z.object({
+  tagline: z.string().trim().max(160).optional().or(z.literal("")),
+  sizeBand: z.enum(["", "1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"]).optional(),
+  foundedYear: z.string().trim().regex(/^(\d{4})?$/, "Use a four-digit year").optional(),
+  locations: z.array(z.string().trim().min(1).max(80)).max(10).optional(),
+  benefits: z.array(z.string().trim().min(1).max(60)).max(12).optional(),
+  culture: z.string().trim().max(1500).optional().or(z.literal("")),
+  lookingFor: z.string().trim().max(1500).optional().or(z.literal("")),
   name: z.string().trim().min(2, "Enter the company name").max(160),
   industry: optionalText(120),
   location: optionalText(160),

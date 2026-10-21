@@ -1,6 +1,6 @@
 export const MB = 1024 * 1024;
 
-export type FileKind = "cv" | "placement_letter" | "avatar" | "cover" | "company_logo" | "verification_doc" | "cv_builder" | "post_media";
+export type FileKind = "cv" | "placement_letter" | "avatar" | "cover" | "company_logo" | "company_gallery" | "verification_doc" | "cv_builder" | "post_media";
 export type BucketId = "cvs" | "placement-letters" | "avatars" | "company-logos" | "verification-docs" | "post-media";
 
 /** Largest original image we accept anywhere (it is shrunk in the browser before upload). */
@@ -54,6 +54,14 @@ export const FILE_RULES: Record<FileKind, FileRule> = {
     extensions: ["jpg", "jpeg", "png", "webp"],
     maxBytes: IMAGE_MAX,
     label: "Logo (JPG, PNG or WebP, up to 25MB)",
+  },
+  company_gallery: {
+    bucket: "company-logos",
+    folder: "company",
+    mimes: ["image/jpeg", "image/png", "image/webp"],
+    extensions: ["jpg", "jpeg", "png", "webp"],
+    maxBytes: IMAGE_MAX,
+    label: "Company photo (JPG, PNG or WebP, up to 25MB)",
   },
   post_media: {
     bucket: "post-media",
