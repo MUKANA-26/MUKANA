@@ -50,7 +50,7 @@ export function FeedSuggestions({ role }: { role: "candidate" | "employer" | "ad
   if (!data || (data.jobs.length === 0 && data.people.length === 0)) return null;
 
   return (
-    <aside aria-label="Suggested for you" className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-sm">
+    <aside aria-label="Suggested for you" className="space-y-4 border-b border-border px-4 py-4">
       {data.jobs.length > 0 && role === "candidate" ? (
         <section>
           <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
@@ -59,7 +59,7 @@ export function FeedSuggestions({ role }: { role: "candidate" | "employer" | "ad
           <ul className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1">
             {data.jobs.map((j) => (
               <li key={j.id} className="w-60 shrink-0 snap-start">
-                <Link href={`/candidate/opportunities/${j.id}`} className="block h-full rounded-xl border border-border p-3 hover:bg-surface-muted">
+                <Link href={`/candidate/opportunities/${j.id}`} className="block h-full rounded-2xl border border-border p-3 hover:bg-surface-muted/60">
                   <p className="flex items-center justify-between gap-2">
                     <Badge variant="info">{TYPE_LABEL[j.type] ?? "Opportunity"}</Badge>
                     <span className="text-sm font-bold text-success">{j.score}%</span>

@@ -84,9 +84,9 @@ export function Composer({ userId, name, avatarUrl, groupId }: { userId: string;
   };
 
   return (
-    <section aria-label="Create a post" className="rounded-xl border border-border bg-surface p-3 shadow-sm sm:p-4">
+    <section aria-label="Create a post" className="border-b border-border px-4 py-3">
       <div className="flex gap-3">
-        <Avatar url={avatarUrl} name={name} size="md" />
+        <Avatar url={avatarUrl} name={name} size="sm" className="size-10" />
         <div className="min-w-0 flex-1">
           <MentionTextarea
             aria-label="What do you want to share?"

@@ -123,37 +123,37 @@ export function FeedList({
   const posts = query.data?.pages.flatMap((p) => p.posts) ?? [];
 
   return (
-    <div className="space-y-4">
+    <div className="overflow-hidden sm:border-x sm:border-border">
       {showComposer && !tag ? <Composer userId={userId} name={name} avatarUrl={avatarUrl} groupId={groupId} /> : null}
 
       {showTabs ? (
-        <div className="space-y-3">
+        <div>
           <form
             role="search"
             onSubmit={(e) => {
               e.preventDefault();
               setSearch(term.trim());
             }}
-            className="relative"
+            className="relative border-b border-border px-4 py-2.5"
           >
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <Search className="pointer-events-none absolute left-7 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
             <input
               type="search"
               value={term}
               onChange={(e) => setTerm(e.target.value)}
               placeholder={t("Search posts")}
               aria-label={t("Search posts")}
-              className="h-11 w-full rounded-xl border border-input bg-surface pl-9 pr-9 text-sm"
+              className="h-10 w-full rounded-full border-0 bg-surface-muted pl-10 pr-9 text-sm focus-visible:outline-2"
             />
             {term ? (
-              <button type="button" onClick={() => setTerm("")} aria-label="Clear search" className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-surface-muted">
+              <button type="button" onClick={() => setTerm("")} aria-label="Clear search" className="absolute right-6 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-surface">
                 <X className="size-4" aria-hidden />
               </button>
             ) : null}
           </form>
 
           {tag ? (
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
               <p className="flex items-center gap-1.5 text-sm font-semibold">
                 <Hash className="size-4 text-link" aria-hidden />
                 {tag}
@@ -168,7 +168,7 @@ export function FeedList({
               </div>
             </div>
           ) : !searching ? (
-            <div className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-surface p-1" role="tablist" aria-label="Feed view">
+            <div className="flex overflow-x-auto border-b border-border" role="tablist" aria-label="Feed view">
               {MODES.map((m) => (
                 <button
                   key={m.id}
@@ -176,7 +176,7 @@ export function FeedList({
                   role="tab"
                   aria-selected={mode === m.id}
                   onClick={() => setMode(m.id)}
-                  className={cn("h-9 flex-1 whitespace-nowrap rounded-lg px-3 text-sm font-medium", mode === m.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-surface-muted")}
+                  className={cn("relative h-12 flex-1 whitespace-nowrap px-3 text-[15px] transition-colors hover:bg-surface-muted/60", mode === m.id ? "font-bold text-foreground after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-12 after:-translate-x-1/2 after:rounded-full after:bg-link" : "font-medium text-muted-foreground")}
                 >
                   {t(m.label)}
                 </button>
@@ -185,10 +185,10 @@ export function FeedList({
           ) : null}
 
           {!tag && !searching && trending.data?.length ? (
-            <div className="flex flex-wrap items-center gap-1.5" aria-label="Trending topics">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-4 py-2.5" aria-label="Trending topics">
               <span className="text-xs font-medium text-muted-foreground">Trending</span>
               {trending.data.map((t) => (
-                <Link key={t.tag} href={`/feed?tag=${encodeURIComponent(t.tag)}`} className="rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-medium text-link hover:bg-surface-muted">
+                <Link key={t.tag} href={`/feed?tag=${encodeURIComponent(t.tag)}`} className="text-sm font-medium text-link hover:underline">
                   #{t.tag}
                 </Link>
               ))}
@@ -200,7 +200,9 @@ export function FeedList({
       {showTabs && mode === "for_you" && !tag && !searching ? <FeedSuggestions role={role} /> : null}
 
       {query.isLoading ? (
-        <SkeletonList count={3} />
+        <div className="px-4 py-3">
+          <SkeletonList count={3} />
+        </div>
       ) : query.isError ? (
         <EmptyState title="Couldn't load the feed" description="Check your connection and try again." action={<Button variant="outline" onClick={() => void query.refetch()}>Try again</Button>} />
       ) : posts.length === 0 ? (
@@ -222,13 +224,13 @@ export function FeedList({
       ) : (
         <>
           {!postId ? (
-            <div className="flex justify-end">
+            <div className="flex justify-end border-b border-border px-2 py-0.5">
               <Button variant="ghost" size="sm" onClick={refreshFeed} loading={query.isFetching && !query.isFetchingNextPage}>
                 <RefreshCw aria-hidden /> {t("Refresh")}
               </Button>
             </div>
           ) : null}
-          <ul className="space-y-4">
+          <ul className="divide-y divide-border border-b border-border">
             {posts.map((p) => (
               <li key={p.id}>
                 <PostCard post={p} userId={userId} role={role} myName={name} myAvatar={avatarUrl} openComments={Boolean(postId)} />
@@ -236,8 +238,8 @@ export function FeedList({
             ))}
           </ul>
           {query.hasNextPage ? (
-            <div className="flex justify-center">
-              <Button variant="outline" loading={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>
+            <div className="flex justify-center py-4">
+              <Button variant="ghost" loading={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>
                 {t("Load more")}
               </Button>
             </div>

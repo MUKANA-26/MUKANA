@@ -51,13 +51,13 @@ export function Comments({ postId, postAuthorId, userId, myName, myAvatar }: { p
   });
 
   return (
-    <div className="space-y-3 border-t border-border pt-3">
+    <div className="space-y-3 pt-2">
       {isLoading ? <p className="text-sm text-muted-foreground">Loading comments…</p> : null}
       <ul className="space-y-3">
         {comments.map((c) => (
           <li key={c.id} className="flex gap-2.5">
             <Avatar url={c.avatarUrl} name={c.author?.full_name} size="sm" />
-            <div className="min-w-0 flex-1 rounded-2xl bg-surface-muted px-3 py-2">
+            <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-baseline justify-between gap-x-2">
                 <p className="text-sm font-semibold">
                   {c.author ? (
